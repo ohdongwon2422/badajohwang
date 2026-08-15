@@ -1,0 +1,134 @@
+
+2단계_복사해서붙여넣기.txt
+
+페이지
+1
+/
+1
+100%
+name: 바다조황 APK 빌드
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 가져오기
+        uses: actions/checkout@v4
+
+      - name: Java 17 준비
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Node 20 준비
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 프로젝트 파일 자동 생성
+        run: |
+          set -e
+          mkdir -p src
+          cp fishing-app-v3.jsx src/App.jsx
+
+          cat > package.json <<'ENDOFFILE'
+          {
+            "name": "badajohwang",
+            "private": true,
+            "version": "1.0.0",
+            "type": "module",
+            "scripts": { "build": "vite build" },
+            "dependencies": {
+              "@capacitor/android": "^6.2.1",
+              "@capacitor/core": "^6.2.1",
+              "react": "^18.3.1",
+              "react-dom": "^18.3.1"
+            },
+            "devDependencies": {
+              "@capacitor/cli": "^6.2.1",
+              "@vitejs/plugin-react": "^4.7.0",
+              "vite": "^5.4.21"
+            }
+          }
+          ENDOFFILE
+
+          cat > capacitor.config.json <<'ENDOFFILE'
+          {
+            "appId": "com.badajohwang.app",
+            "appName": "바다조황",
+            "webDir": "dist"
+          }
+          ENDOFFILE
+
+          cat > vite.config.js <<'ENDOFFILE'
+          import { defineConfig } from 'vite'
+          import react from '@vitejs/plugin-react'
+          export default defineConfig({ plugins: [react()] })
+          ENDOFFILE
+
+          cat > index.html <<'ENDOFFILE'
+          <!doctype html>
+          <html lang="ko">
+            <head>
+              <meta charset="utf-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+              <title>바다조황</title>
+            </head>
+            <body>
+              <div id="root"></div>
+              <script type="module" src="/src/main.jsx"></script>
+            </body>
+          </html>
+          ENDOFFILE
+
+          cat > src/main.jsx <<'ENDOFFILE'
+          import React from 'react'
+          import { createRoot } from 'react-dom/client'
+          import './index.css'
+          import App from './App.jsx'
+          createRoot(document.getElementById('root')).render(<App />)
+          ENDOFFILE
+
+          cat > src/index.css <<'ENDOFFILE'
+          html, body, #root { margin: 0; padding: 0; background: #0a1929; }
+          body { -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
+          ENDOFFILE
+
+          echo "--- 생성된 파일 ---"
+          ls -R src package.json index.html vite.config.js capacitor.config.json
+
+      - name: 패키지 설치
+        run: npm install
+
+      - name: 화면 빌드
+        run: npx vite build
+
+      - name: 안드로이드 프로젝트 생성
+        run: npx cap add android
+
+      - name: 안드로이드로 복사
+        run: npx cap sync android
+
+      - name: 인터넷 권한 확인
+        run: grep -q "android.permission.INTERNET" android/app/src/main/AndroidManifest.xml && echo "인터넷 권한 OK"
+
+      - name: APK 만들기
+        run: |
+          chmod +x ./android/gradlew
+          cd android
+          ./gradlew assembleDebug --no-daemon
+
+      - name: APK 내려받기 준비
+        uses: actions/upload-artifact@v4
+        with:
+          name: badajohwang-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+2단계_복사해서붙여넣기.txt 표시 중입니다.
