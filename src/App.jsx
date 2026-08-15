@@ -68,91 +68,79 @@ const REGIONS = [
   { id:"sokcho",      name:"속초",           sea:"동해", kind:"내만", lat:38.210, lon:128.610 },
   { id:"goseong_e",   name:"고성(거진항)",   sea:"동해", kind:"내만", lat:38.450, lon:128.470 },
   { id:"ulleung",     name:"울릉도",         sea:"동해", kind:"원도", lat:37.480, lon:130.900 },
-
-  // ═══ 제주 ═══
-  { id:"jeju",        name:"제주(제주항)",   sea:"제주", kind:"내만", lat:33.530, lon:126.540 },
-  { id:"aewol",       name:"제주(애월)",     sea:"제주", kind:"내만", lat:33.470, lon:126.310 },
-  { id:"hallim",      name:"제주(한림항)",   sea:"제주", kind:"내만", lat:33.410, lon:126.260 },
-  { id:"moseulpo",    name:"제주(모슬포)",   sea:"제주", kind:"내만", lat:33.210, lon:126.250 },
-  { id:"seogwipo",    name:"서귀포",         sea:"제주", kind:"내만", lat:33.230, lon:126.560 },
-  { id:"seongsan",    name:"제주(성산포)",   sea:"제주", kind:"내만", lat:33.470, lon:126.940 },
-  { id:"gimnyeong",   name:"제주(김녕항)",   sea:"제주", kind:"내만", lat:33.560, lon:126.760 },
-  { id:"chuja",       name:"추자도",         sea:"제주", kind:"원도", lat:33.950, lon:126.300 },
-  { id:"marado",      name:"마라도",         sea:"제주", kind:"원도", lat:33.117, lon:126.267 },
-  { id:"gapado",      name:"가파도",         sea:"제주", kind:"원도", lat:33.170, lon:126.270 },
 ];
-const SEAS = ["서해","남해","동해","제주"];
+const SEAS = ["서해","남해","동해"];
 
 // ══════════════════════════════════════════════════════════
 //  어종 데이터 (웹 검색 기반 실제값) · peak=피크월, season=전체시즌
 //  category: 어류 / 두족류(오징어문어) / 기타
 // ══════════════════════════════════════════════════════════
 const FISH = [
-  { id:"galchi", name:"갈치", emoji:"🐟", cat:"어류", tempMin:20, tempMax:27, tempNote:"20℃↑ 먹이활동 활발 (아열대성)",
+  { id:"galchi", name:"갈치", emoji:"🐟", cat:"어류", tempMin:20, tempMax:27, tempNote:"20℃↑ 먹이활동 활발 (아열대성)", zone:"여수·거문도·백도, 제주 (먼바다 채낚기)",
     tideBest:"3물~7물", tideNote:"사리엔 조류 빨라 불리 · 조금엔 입질 약함", season:"7~12월", peak:"9~11월", seasonPeak:[9,10,11], seasonAll:[7,8,9,10,11,12],
     ban:"7월 중 (근해채낚기 등, 매년 고시)", minSize:"항문장 18cm", banNote:"금어기는 어업별로 다름 · 낚시객은 체장 준수", depth:"표층~중층 (선상 50~100m)", best:"밤 · 바람 잦아든 초저녁",
     tips:["추광성 — 집어등/케미라이트에 잘 모임","초저녁 바람 터지면 조과 급락","11~12월 연안 굵은 씨알 마릿수","찬바람에 연안서 빠지면 시즌 종료"] },
-  { id:"gwangeo", name:"광어(넙치)", emoji:"🐟", cat:"어류", tempMin:10, tempMax:25, tempNote:"15~22℃ 활동성 최고 · 산란기 2~6월",
+  { id:"gwangeo", name:"광어(넙치)", emoji:"🐟", cat:"어류", tempMin:10, tempMax:25, tempNote:"15~22℃ 활동성 최고 · 산란기 2~6월", zone:"서해 전역·남해 서부 (안흥·격포·가거도)",
     tideBest:"3~7물 (바닥 찍기 편함)", tideNote:"모래·펄 바닥에 붙어 생활", season:"4~11월", peak:"5~6월·10월", seasonPeak:[5,6,10], seasonAll:[4,5,6,7,8,9,10,11],
     ban:"없음 (금지체장만)", minSize:"35cm", banNote:"넙치 35cm 미만 방생", depth:"10~200m 모래·혼무니 바닥", best:"서해 방조제·선상 다운샷",
     tips:["다운샷 웜·생새우로 바닥 공략","치어방류로 자원 풍부해져 전문 대상어화","모래와 암반 섞인 지형 선호","서해 루어·선상 외줄 모두 가능"] },
-  { id:"ureok", name:"우럭(조피볼락)", emoji:"🐟", cat:"어류", tempMin:8, tempMax:22, tempNote:"8~22℃ (냉수에 강함)",
+  { id:"ureok", name:"우럭(조피볼락)", emoji:"🐟", cat:"어류", tempMin:8, tempMax:22, tempNote:"8~22℃ (냉수에 강함)", zone:"서해 전역·남해·동해 (선상 우럭 전국)",
     tideBest:"3~7물", tideNote:"먼바다 선상은 물때 영향 적음", season:"연중 (4~6월 대물)", peak:"4~6월", seasonPeak:[4,5,6], seasonAll:[1,2,3,4,5,6,7,8,9,10,11,12],
     ban:"없음", minSize:"23cm 권장", banNote:"법정 금지체장은 없으나 자원보호 위해 23cm↓ 방생", depth:"암초·인공어초 바닥", best:"서해 선상 외줄낚시",
     tips:["서해 대표 입문 어종","23cm 미만은 방생 (자원보호)","볼락·열기와 함께 낚임","산란 전후 봄철이 굵은 씨알"] },
-  { id:"gamseongdom", name:"감성돔", emoji:"🐠", cat:"어류", tempMin:15, tempMax:22, tempNote:"15~22℃ 활동성 최고",
+  { id:"gamseongdom", name:"감성돔", emoji:"🐠", cat:"어류", tempMin:15, tempMax:22, tempNote:"15~22℃ 활동성 최고", zone:"남해 갯바위 전역·서해 원도 (여수·완도·통영)",
     tideBest:"중간 물때 (사리 정중앙 피함)", tideNote:"영등철엔 느린 조류·물돌이 때 유리", season:"3~6월·10~11월", peak:"4~5월·10~11월", seasonPeak:[4,5,10,11], seasonAll:[3,4,5,6,10,11],
     ban:"5/1~5/31", minSize:"25cm", banNote:"산란기 보호 · 25cm 미만 방생", depth:"7~8m 여밭·수중여", best:"해질녘 전후 30분 · 갯바위",
     tips:["'바다의 왕자' — 수심 깊은 여밭 선호","미끼 크릴/게살","경사 완만·바닥 밋밋한 곳 잘 붙음","영등철(2~3월) 대물 노림"] },
-  { id:"chamdom", name:"참돔", emoji:"🐠", cat:"어류", tempMin:14, tempMax:24, tempNote:"봄·가을 연안 회유",
+  { id:"chamdom", name:"참돔", emoji:"🐠", cat:"어류", tempMin:14, tempMax:24, tempNote:"봄·가을 연안 회유", zone:"남해·제주 (통영·거제·여서도)",
     tideBest:"3~7물 (조류 있는 날)", tideNote:"타이라바·선상 지깅", season:"4~5월·10~11월", peak:"4~5월·10~11월", seasonPeak:[4,5,10,11], seasonAll:[4,5,6,9,10,11],
     ban:"없음", minSize:"24cm", banNote:"24cm 미만 방생", depth:"20~150m 중층~저층", best:"선상 타이라바 · 물돌이",
     tips:["봄 산란기 대물 '벚꽃돔'","타이라바·인치쿠로 공략","조류 흐를 때 입질 활발"] },
-  { id:"nongeo", name:"농어", emoji:"🐟", cat:"어류", tempMin:14, tempMax:24, tempNote:"루어 대표 어종",
+  { id:"nongeo", name:"농어", emoji:"🐟", cat:"어류", tempMin:14, tempMax:24, tempNote:"루어 대표 어종", zone:"남해·서해 하구 (여수·군산·강화)",
     tideBest:"들물~날물 교차 (물돌이)", tideNote:"조석차 클수록 포인트 중요", season:"5~10월", peak:"5~7월", seasonPeak:[5,6,7], seasonAll:[5,6,7,8,9,10],
     ban:"없음", minSize:"없음", banNote:"법정 규제 없음 (자원보호 배려)", depth:"수문·방파제·갯바위", best:"새벽·해질녘 · 루어",
     tips:["'바다의 육상' — 강한 파이팅","하드베이트·미노우 캐스팅","수문·기수역 포인트","제주는 연중 가능"] },
-  { id:"doldom", name:"돌돔", emoji:"🐠", cat:"어류", tempMin:16, tempMax:26, tempNote:"여름 고수온기 피크",
+  { id:"doldom", name:"돌돔", emoji:"🐠", cat:"어류", tempMin:16, tempMax:26, tempNote:"여름 고수온기 피크", zone:"남해 원도·제주 (거문도·추자·가거도)",
     tideBest:"3~5물·11~13물 (사리 피함)", tideNote:"물돌이 때 입질 잦음 · 탁한 물 피함", season:"6월중순~10월말", peak:"7~9월", seasonPeak:[7,8,9], seasonAll:[6,7,8,9,10],
     ban:"없음", minSize:"24cm", banNote:"24cm 미만 방생 권장", depth:"암초대 10~15m", best:"아침~오전 (해 뜬 후 2시간)",
     tips:["주행성 — 아침이 피크","성게·소라·게 미끼","얕은 여밭은 파도 있는 날 유리","'갯바위의 황제' 강한 손맛"] },
-  { id:"bangeo", name:"방어", emoji:"🐟", cat:"어류", tempMin:12, tempMax:22, tempNote:"겨울철 최고 횟감",
+  { id:"bangeo", name:"방어", emoji:"🐟", cat:"어류", tempMin:12, tempMax:22, tempNote:"겨울철 최고 횟감", zone:"제주·남해·동해 남부 (겨울 방어)",
     tideBest:"본류대 조류 흐를 때", tideNote:"베이트 무리 추적", season:"9~1월", peak:"11~1월", seasonPeak:[11,12,1], seasonAll:[9,10,11,12,1],
     ban:"없음", minSize:"없음 (대방어 보호 권장)", banNote:"소형 방어 방생 권장", depth:"20~150m 중층~저층", best:"지깅·캐스팅 · 남해/제주/동해",
     tips:["10kg↑ 대물은 '대방어'","메탈지그 지깅이 기본","겨울철 기름진 육질 최고","강력한 파이팅·지구력"] },
-  { id:"samchi", name:"삼치", emoji:"🐟", cat:"어류", tempMin:15, tempMax:24, tempNote:"회유성 · 빠른 유영",
+  { id:"samchi", name:"삼치", emoji:"🐟", cat:"어류", tempMin:15, tempMax:24, tempNote:"회유성 · 빠른 유영", zone:"동해 (경주 감포·포항), 남해 원도",
     tideBest:"조류 흐르는 날", tideNote:"표층 베이트 추적", season:"9~11월·5월", peak:"9~11월", seasonPeak:[9,10,11], seasonAll:[5,9,10,11],
     ban:"5월 (신설, 매년 고시)", minSize:"항문장 21cm", banNote:"산란기 보호", depth:"표층~중층", best:"메탈 캐스팅 · 동해/남해",
     tips:["이빨 날카로워 와이어 리더 필수","은빛 메탈지그 빠른 릴링","가을 기름 오른 삼치 별미"] },
-  { id:"godeungeo", name:"고등어", emoji:"🐟", cat:"어류", tempMin:14, tempMax:22, tempNote:"14~22℃ · 일출·일몰 전후 공격성↑",
+  { id:"godeungeo", name:"고등어", emoji:"🐟", cat:"어류", tempMin:14, tempMax:22, tempNote:"14~22℃ · 일출·일몰 전후 공격성↑", zone:"남해·동해 (부산·통영·포항)",
     tideBest:"조류 있는 물때", tideNote:"표층 카고·사비키", season:"6~11월", peak:"8~11월", seasonPeak:[8,9,10,11], seasonAll:[6,7,8,9,10,11],
     ban:"4~6월 중 한 달 (매년 고시)", minSize:"21cm", banNote:"매년 해수부 고시로 기간 지정", depth:"표층~중층", best:"일출·일몰 전후 · 방파제",
     tips:["은빛 반사 미끼(스푼·파리)에 폭발","사비키 채비로 마릿수","가을 기름 오른 고등어 최상"] },
-  { id:"bolrak", name:"볼락", emoji:"🐟", cat:"어류", tempMin:8, tempMax:18, tempNote:"찬물 좋아하는 겨울 대표어",
+  { id:"bolrak", name:"볼락", emoji:"🐟", cat:"어류", tempMin:8, tempMax:18, tempNote:"찬물 좋아하는 겨울 대표어", zone:"남해·동해 전역 (통영·거제·울산·경주·포항·영덕·울진)",
     tideBest:"1~4물·8~10물 (느린 조류)", tideNote:"야간에 활성↑", season:"11~4월", peak:"12~3월", seasonPeak:[12,1,2,3], seasonAll:[11,12,1,2,3,4],
     ban:"없음", minSize:"15cm", banNote:"조피볼락 등 볼락류 15cm 미만 방생", depth:"암초·테트라포드 사이", best:"밤 · 남해 갯바위/방파제",
     tips:["경상도 '뽈락' · 겨울 대표 손맛","웜·미끼 야간 라이트게임","암초 틈에 은신 — 정밀 공략","잡식성 — 새우·물고기 다 먹음"] },
-  { id:"muneo", name:"문어", emoji:"🐙", cat:"두족류", tempMin:12, tempMax:22, tempNote:"15~22℃ 활동성 최고",
+  { id:"muneo", name:"문어", emoji:"🐙", cat:"두족류", tempMin:12, tempMax:22, tempNote:"15~22℃ 활동성 최고", zone:"동해·남해 (포항·영덕·통영)",
     tideBest:"조금~중물 (약한 조류)", tideNote:"물 맑고 조류 세지 않을 때", season:"7~9월", peak:"7~8월", seasonPeak:[7,8], seasonAll:[7,8,9],
     ban:"시·도 별도 지정", minSize:"금지체중 신설", banNote:"지역별 금어기 상이 · 관할 고시 확인", depth:"10~100m 바닥권", best:"물색 맑은 낮 · 바닥 공략",
     tips:["대문어는 동해·남해 깊은 여밭","에기/문어지그로 바닥 탐색","격투력 강해 채비 튼튼하게"] },
-  { id:"gapojingeo", name:"갑오징어", emoji:"🦑", cat:"두족류", tempMin:12, tempMax:24, tempNote:"12~24℃",
+  { id:"gapojingeo", name:"갑오징어", emoji:"🦑", cat:"두족류", tempMin:12, tempMax:24, tempNote:"12~24℃", zone:"서해·남해 (태안·군산·여수)",
     tideBest:"무시~3물 (약한 물때)", tideNote:"바닥 서식 — 조류 약해야 채비 안착", season:"봄3~5월·가을9~11월", peak:"4~5월·10~11월", seasonPeak:[4,5,10,11], seasonAll:[3,4,5,9,10,11],
     ban:"없음", minSize:"없음", banNote:"자원보호 위해 소형 방생 권장", depth:"5~50m (바닥 20~50cm)", best:"에깅 · 물흐름 느린 날",
     tips:["시력 좋아 에기 색상에 민감","서해 오천·군산, 남해 여수·통영·거제","고패질로 천천히 작은 폭 유인","봄 대물·가을 마릿수 두 시즌"] },
-  { id:"jukkumi", name:"주꾸미", emoji:"🐙", cat:"두족류", tempMin:15, tempMax:25, tempNote:"가을철 연안 수온대",
+  { id:"jukkumi", name:"주꾸미", emoji:"🐙", cat:"두족류", tempMin:15, tempMax:25, tempNote:"가을철 연안 수온대", zone:"서해 (태안·보령·서산)",
     tideBest:"2물~5물", tideNote:"조금물때가 사리보다 유리", season:"8~11월", peak:"9~10월", seasonPeak:[9,10], seasonAll:[8,9,10,11],
     ban:"5/11~8/31", minSize:"없음", banNote:"산란·성장기 4개월 포획 금지", depth:"얕은 바닥권", best:"가을 서해 선상 · 새벽 출항",
     tips:["묵직해지면 한 템포 늦춰 챔질","천수만처럼 개체 많으면 물때 무관","바닥까지 에기 내려 고패질","금어기(5.11~8.31) 확인"] },
-  { id:"munui", name:"무늬오징어", emoji:"🦑", cat:"두족류", tempMin:18, tempMax:28, tempNote:"18~28℃",
+  { id:"munui", name:"무늬오징어", emoji:"🦑", cat:"두족류", tempMin:18, tempMax:28, tempNote:"18~28℃", zone:"남해·제주 (통영·거제·여수 무늬오징어)",
     tideBest:"조류 완만한 물때", tideNote:"바람·탁한 물·비 직후·민물 유입 피함", season:"봄4~6월·가을9~11월", peak:"5~6월·10월", seasonPeak:[5,6,10], seasonAll:[4,5,6,9,10,11],
     ban:"없음", minSize:"없음", banNote:"자원보호 위해 소형 방생 권장", depth:"5~50m", best:"제주 에깅 · 야간낚시",
     tips:["제주 인기 에깅, 킬로급 손맛","서귀포 남원 연중 가능(16℃↑)","먹물 묻은 에기는 교체","봄 산란기 대물·가을 마릿수"] },
-  { id:"hanchi", name:"한치", emoji:"🦑", cat:"두족류", tempMin:20, tempMax:28, tempNote:"여름 고수온기",
+  { id:"hanchi", name:"한치", emoji:"🦑", cat:"두족류", tempMin:20, tempMax:28, tempNote:"여름 고수온기", zone:"제주·동해·남해 (여름 한치)",
     tideBest:"조류 완만한 밤", tideNote:"집어등에 모임", season:"6~8월", peak:"6~8월", seasonPeak:[6,7,8], seasonAll:[6,7,8],
     ban:"없음", minSize:"없음", banNote:"자원보호 위해 소형 방생 권장", depth:"표층~중층", best:"밤 선상 · 남해/제주 집어등",
     tips:["여름밤 선상 대표 어종","집어등에 베이트 모아 공략","막대찌·수중집어등 병행","제주·남해 여름 별미"] },
-  { id:"salojingeo", name:"살오징어", emoji:"🦑", cat:"두족류", tempMin:12, tempMax:22, tempNote:"동해 대표 · 최근 서해도 출현",
+  { id:"salojingeo", name:"살오징어", emoji:"🦑", cat:"두족류", tempMin:12, tempMax:22, tempNote:"동해 대표 · 최근 서해도 출현", zone:"동해·남해 먼바다 (울릉·포항·강릉·남해 원도)",
     tideBest:"조류 완만한 밤", tideNote:"집어등 채비", season:"6~12월", peak:"9~10월", seasonPeak:[9,10], seasonAll:[6,7,8,9,10,11,12],
     ban:"4/1~5/31 (연안, 매년 고시)", minSize:"외투장 15cm", banNote:"어린 오징어 보호 강화", depth:"표층~중층", best:"밤 선상 · 동해/서해 집어등",
     tips:["초보도 하루 50수 거뜬","묶음바늘(이카바늘) 채비","수온 상승으로 서해 어청도도 대풍","동해가 본거지지만 광역 확산"] },
@@ -331,7 +319,7 @@ function sampleData(){
 const WMO={0:["맑음","☀️"],1:["대체로 맑음","🌤️"],2:["구름 조금","⛅"],3:["흐림","☁️"],45:["안개","🌫️"],48:["짙은 안개","🌫️"],51:["약한 이슬비","🌦️"],53:["이슬비","🌦️"],55:["강한 이슬비","🌧️"],61:["약한 비","🌧️"],63:["비","🌧️"],65:["강한 비","🌧️"],71:["약한 눈","🌨️"],73:["눈","🌨️"],75:["강한 눈","❄️"],80:["소나기","🌦️"],81:["소나기","🌧️"],82:["강한 소나기","⛈️"],95:["뇌우","⛈️"],96:["우박 뇌우","⛈️"],99:["강한 뇌우","⛈️"]};
 function windDir(deg){return ["북","북동","동","남동","남","남서","서","북서"][Math.round(deg/45)%8];}
 function windArrow(deg){return ["↓","↙","←","↖","↑","↗","→","↘"][Math.round(deg/45)%8];} // 바람이 불어가는 방향
-function fishingScore(level,wind,wave){let s=0;if(level===3||level===4)s+=2;else if(level===5||level===2)s+=1;if(wind<4)s+=2;else if(wind<7)s+=1;else if(wind>=10)s-=1;if(wave!=null){if(wave<0.5)s+=1;else if(wave>=1.5)s-=1;}if(s>=4)return{label:"출조 최적",color:"#1f9d55",emoji:"🎣"};if(s>=2)return{label:"무난",color:"#c98a00",emoji:"🙂"};return{label:"신중",color:"#c0392b",emoji:"⚠️"};}
+function fishingScore(level,wind,wave){let s=0;if(level===3||level===4)s+=2;else if(level===5||level===2)s+=1;if(wind<4)s+=2;else if(wind<7)s+=1;else if(wind>=10)s-=1;if(wave!=null){if(wave<0.5)s+=1;else if(wave>=1.5)s-=1;}if(s>=4)return{label:"출조 최적",color:"#1f9d55",bg:"#e4f5ea",fg:"#177a41",emoji:"🎣"};if(s>=2)return{label:"무난",color:"#c98a00",bg:"#fdf3dc",fg:"#8a6200",emoji:"🙂"};return{label:"신중",color:"#c0392b",bg:"#fbe6e3",fg:"#a5301f",emoji:"⚠️"};}
 
 // 밝은 낮 바다 테마
 //  bg=연한 하늘 배경 / card=흰 카드 / card2=아주 연한 하늘 / text=진한 남색 글자
@@ -379,15 +367,18 @@ function getMarineAlert(windMax, waveMax, gustMax){
 //  메인
 // ══════════════════════════════════════════════════════════
 const TABS=[
-  ["forecast","🌊","바다예보"],["wind","💨","바람·파고"],["weather","⛅","날씨"],
-  ["tide","🌙","물때"],["predict","🎯","낚시예측"],["fish","🐟","어종별"],["point","📍","포인트"],
+  ["forecast","🌊","바다예보"],["weather","⛅","날씨"],["wind","💨","바람·파고"],
+  ["tide","🌙","물때"],["chart","🗺️","전자해도"],["point","📍","포인트"],
 ];
+const CHART_URL="https://www.khoa.go.kr/oceanmap/main.do"; // 전자해도(국립해양조사원)
 
 export default function FishingApp(){
   const [tab,setTab]=useState("forecast");
   const _defaultRegion=REGIONS.find(r=>r.id==="samcheonpo")||REGIONS[0];
   const [region,setRegion]=useState(_defaultRegion);
   const [selSea,setSelSea]=useState(_defaultRegion.sea); // 선택한 바다(서해/남해/동해/제주)
+  const [ptQuery,setPtQuery]=useState("");   // 포인트 검색어
+  const [ptOpen,setPtOpen]=useState(false);  // 포인트 목록 열림 여부
   const [data,setData]=useState(null);
   const [loading,setLoading]=useState(true);
   const [selFish,setSelFish]=useState(FISH[0]);
@@ -456,37 +447,77 @@ export default function FishingApp(){
         <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:12}}>
           <span style={{fontSize:22}}>🌊</span>
           <span style={{fontSize:20,fontWeight:900,letterSpacing:-0.5,color:"#fff",textShadow:"0 1px 3px rgba(0,40,80,0.35)"}}>바다조황</span>
-          <span style={{fontSize:11,color:"rgba(255,255,255,0.9)",fontWeight:600,marginTop:4}}>물때·수온·날씨·어종</span>
+          <span style={{fontSize:11,color:"rgba(255,255,255,0.9)",fontWeight:600,marginTop:4}}>물때·수온·날씨·조황</span>
         </div>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
-          <div style={{display:"flex",gap:6,flex:1,minWidth:0}}>
-            {/* 1단계: 바다 선택 */}
-            <select value={selSea} onChange={e=>{
-                const sea=e.target.value; setSelSea(sea);
-                const first=REGIONS.find(r=>r.sea===sea);
-                if(first) setRegion(first); // 바다 바꾸면 그 바다 첫 포인트로 자동 이동
+        {/* 날짜 (상단 우측) */}
+        <div style={{textAlign:"right",fontSize:11,color:"rgba(255,255,255,0.92)",marginBottom:6}}>{dateStr} · 음력 {mt.lunarDay}일 · {mt.name}</div>
+
+        {/* 바다 버튼 3개 + 짧은 검색창 */}
+        <div style={{display:"flex",gap:6,marginBottom:7}}>
+          {SEAS.map(s=>(
+            <button key={s} onClick={()=>{
+                setSelSea(s); setPtQuery(""); setPtOpen(false);
+                const first=REGIONS.find(r=>r.sea===s);
+                if(first) setRegion(first);
               }}
-              style={{padding:"8px 8px",fontSize:15,fontWeight:800,borderRadius:10,border:"none",background:"rgba(255,255,255,0.95)",color:C.blue,appearance:"none",flexShrink:0}}>
-              {SEAS.map(s=><option key={s} value={s}>{s}</option>)}
-            </select>
-            {/* 2단계: 포인트 선택 (선택한 바다의 포인트만) */}
-            <select value={region.id} onChange={e=>setRegion(REGIONS.find(r=>r.id===e.target.value))}
-              style={{padding:"8px 10px",fontSize:15,fontWeight:800,borderRadius:10,border:"none",background:"rgba(255,255,255,0.95)",color:C.text,appearance:"none",flex:1,minWidth:0,textOverflow:"ellipsis"}}>
-              {REGIONS.filter(r=>r.sea===selSea).map(r=>(
-                <option key={r.id} value={r.id}>{r.kind==="원도"?"🚢 ":"📍 "}{r.name}</option>
-              ))}
-            </select>
+              style={{flex:1,padding:"8px 0",borderRadius:9,border:"none",cursor:"pointer",fontSize:15,fontWeight:800,
+                background: selSea===s ? "#fff" : "rgba(255,255,255,0.25)",
+                color: selSea===s ? C.blue : "#fff"}}>
+              {s}
+            </button>
+          ))}
+          {/* 짧은 검색창 */}
+          <div style={{position:"relative",width:96,flexShrink:0}}>
+            <input
+              value={ptOpen?ptQuery:""}
+              onChange={e=>{setPtQuery(e.target.value); if(!ptOpen)setPtOpen(true);}}
+              onFocus={()=>{setPtOpen(true); setPtQuery("");}}
+              onBlur={()=>{setTimeout(()=>setPtOpen(false),180);}}
+              placeholder="🔍검색"
+              style={{width:"100%",padding:"8px 8px",fontSize:13,fontWeight:700,borderRadius:9,border:"none",
+                background:"rgba(255,255,255,0.95)",color:C.text,outline:"none",boxSizing:"border-box"}}/>
+            {ptOpen && ptQuery && (
+              <div style={{position:"absolute",top:"calc(100% + 4px)",right:0,width:200,maxHeight:280,overflowY:"auto",
+                background:"#fff",borderRadius:10,boxShadow:"0 6px 20px rgba(0,40,80,0.25)",zIndex:60,padding:"4px 0"}}>
+                {(()=>{
+                  const q=ptQuery.trim().toLowerCase();
+                  // 검색은 전체 바다에서 (바다 상관없이 이름으로 찾기)
+                  const list=REGIONS.filter(r=>r.name.toLowerCase().includes(q));
+                  if(list.length===0) return <div style={{padding:"12px 14px",fontSize:13,color:C.gray}}>검색 결과 없음</div>;
+                  return list.map(r=>(
+                    <div key={r.id}
+                      onMouseDown={()=>{setRegion(r); setSelSea(r.sea); setPtOpen(false); setPtQuery("");}}
+                      style={{padding:"10px 14px",fontSize:14,fontWeight:700,cursor:"pointer",color:C.text,
+                        display:"flex",alignItems:"center",gap:6}}>
+                      <span>{r.kind==="원도"?"🚢":"📍"}</span>{r.name}
+                      <span style={{fontSize:10,color:C.gray,marginLeft:"auto"}}>{r.sea}</span>
+                    </div>
+                  ));
+                })()}
+              </div>
+            )}
           </div>
-          <div style={{textAlign:"right",fontSize:11,color:"rgba(255,255,255,0.92)",flexShrink:0}}>{dateStr}<br/>음력 {mt.lunarDay}일 · {mt.name}</div>
         </div>
-        <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",marginTop:5}}>
+
+        {/* 선택한 바다의 포인트 목록 (가로 스크롤 칩) */}
+        <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:2,marginBottom:5}}>
+          {REGIONS.filter(r=>r.sea===selSea).map(r=>(
+            <button key={r.id} onClick={()=>setRegion(r)}
+              style={{flexShrink:0,padding:"7px 12px",borderRadius:16,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,
+                background: r.id===region.id ? "#fff" : "rgba(255,255,255,0.18)",
+                color: r.id===region.id ? C.blue : "#fff"}}>
+              {r.kind==="원도"?"🚢 ":""}{r.name}
+            </button>
+          ))}
+        </div>
+        <div style={{fontSize:10.5,color:"rgba(255,255,255,0.85)"}}>
           🚢 = 배 타고 나가는 먼바다 섬(원도) · 현재: <span style={{color:"#fff",fontWeight:700}}>{region.name}</span>
           {region.kind==="원도" && <span style={{color:"#ffe9b0"}}> · 출조 전 여객선·낚싯배 운항 확인</span>}
         </div>
         {/* 탭 스크롤 */}
         <div style={{display:"flex",gap:6,overflowX:"auto",marginTop:12}}>
           {TABS.map(([id,ic,label])=>(
-            <button key={id} onClick={()=>setTab(id)} style={{flexShrink:0,padding:"7px 12px",borderRadius:18,border:"none",
+            <button key={id} onClick={()=>{ if(id==="chart"){ window.open(CHART_URL,"_blank"); } else { setTab(id); } }} style={{flexShrink:0,padding:"7px 12px",borderRadius:18,border:"none",
               background:tab===id?"#fff":"rgba(255,255,255,0.22)",color:tab===id?"#2f6fb5":"#fff",fontSize:13,fontWeight:700,cursor:"pointer"}}>
               {ic} {label}
             </button>
@@ -546,9 +577,9 @@ export default function FishingApp(){
         {!loading && data && data.w && tab==="forecast" && (
           <>
             {score&&(
-              <div style={{background:score.color,borderRadius:16,padding:"15px 18px",marginBottom:12,display:"flex",alignItems:"center",gap:12}}>
+              <div style={{background:score.bg,border:`1.5px solid ${score.color}55`,borderRadius:16,padding:"15px 18px",marginBottom:12,display:"flex",alignItems:"center",gap:12}}>
                 <div style={{fontSize:32}}>{score.emoji}</div>
-                <div><div style={{fontSize:12,opacity:.85}}>오늘 {region.name} 낚시 조건</div><div style={{fontSize:21,fontWeight:800}}>{score.label}</div></div>
+                <div><div style={{fontSize:12,color:score.fg,opacity:.85}}>오늘 {region.name} 낚시 조건</div><div style={{fontSize:21,fontWeight:800,color:score.fg}}>{score.label}</div></div>
               </div>
             )}
             {/* 요약 (날씨·바람파고) */}
@@ -867,6 +898,11 @@ export default function FishingApp(){
                       </span>
                       <span style={{fontSize:13,fontWeight:700,color:C.blue}}>{dmt.name}</span>
                       <span style={{fontSize:12,color:C.amber}}>{dmt.strength}</span>
+                      {(()=>{
+                        const fp=isToday?currentFlowPct(dmt.level,waveH,cur?.wind_speed_10m):tideOnlyPct(dmt.level);
+                        const col=fp>=60?"#d9554a":fp>=40?C.amber:C.lblue;
+                        return <span style={{fontSize:12,fontWeight:800,color:col}}>🌊{fp}%</span>;
+                      })()}
                       <span style={{marginLeft:"auto"}}>
                         {[1,2,3,4,5].map(n=><span key={n} style={{display:"inline-block",width:12,height:5,borderRadius:2,marginLeft:2,background:n<=dmt.level?C.blue:C.border}}/>)}
                       </span>
@@ -887,197 +923,6 @@ export default function FishingApp(){
           </>
         )}
 
-        {/* ═══ 낚시예측 (체감수온 + 종합) ═══ */}
-        {!loading && data && tab==="predict" && (
-          <>
-            {score&&(
-              <div style={{background:score.color,borderRadius:16,padding:"16px 18px",marginBottom:12}}>
-                <div style={{fontSize:13,opacity:.85}}>오늘 출조 판단</div>
-                <div style={{fontSize:24,fontWeight:800,marginTop:2}}>{score.emoji} {score.label}</div>
-                <div style={{fontSize:12,opacity:.9,marginTop:6}}>물때 {mt.strength} · 바람 {cur?cur.wind_speed_10m.toFixed(1):"-"}m/s · 파고 {waveH!=null?waveH.toFixed(1)+"m":"-"}</div>
-              </div>
-            )}
-            <Card title="🌡️ 수온 · 체감수온">
-              <div style={{display:"flex",gap:12}}>
-                <div style={{flex:1,background:C.card2,borderRadius:12,padding:"14px"}}>
-                  <div style={{fontSize:11,color:C.gray}}>실제 수온</div>
-                  <div style={{fontSize:32,fontWeight:800,color:C.blue}}>{seaTemp!=null?seaTemp.toFixed(1):"-"}°</div>
-                </div>
-                <div style={{flex:1,background:"linear-gradient(135deg,#eaf5fc,#d6ebf8)",borderRadius:12,padding:"14px",border:"1px solid "+C.border}}>
-                  <div style={{fontSize:11,color:C.gold}}>🌬️ 체감수온</div>
-                  <div style={{fontSize:32,fontWeight:800,color:C.gold}}>{feels!=null?feels.toFixed(1):"-"}°</div>
-                  <div style={{fontSize:10,color:C.gray,marginTop:2}}>바람·파고·기온차 반영</div>
-                </div>
-              </div>
-              <div style={{fontSize:11,color:C.gray,marginTop:10}}>낚시꾼이 실제로 느끼는 수온. 표시 수온과 체감이 다른 이유를 숫자로.</div>
-            </Card>
-
-            {/* 수심별 수온 (표층 vs 심층) */}
-            <Card title="🌊 수심별 수온">
-              <div style={{display:"flex",gap:8}}>
-                <DepthTemp label="표층 0m" temp={seaTemp} note="찌·표층 어종" C={C}/>
-                <DepthTemp label="수심 20m" temp={seaTemp20} note="중층 공략" C={C}/>
-                <DepthTemp label="수심 50m" temp={seaTemp50} note="바닥·선상" C={C}/>
-              </div>
-              {(seaTemp20!=null||seaTemp50!=null)&&seaTemp!=null&&(
-                <div style={{fontSize:12,color:C.lblue,marginTop:10,lineHeight:1.5}}>
-                  {seaTemp50!=null
-                    ? `바닥(50m)은 표층보다 ${(seaTemp-seaTemp50).toFixed(1)}° 낮아요. 우럭·광어·문어 등 바닥 어종 참고.`
-                    : `수심 20m는 표층보다 ${(seaTemp-seaTemp20).toFixed(1)}° 낮아요.`}
-                </div>
-              )}
-              <div style={{fontSize:10,color:C.gray,marginTop:8,lineHeight:1.5}}>
-                ※ 심층 수온은 해양모델 <b>추정값</b>이라 실측과 차이 있을 수 있어요. 데이터 없는 지점은 '-'로 표시됩니다.
-              </div>
-            </Card>
-            <Card title="🎯 지금 잘 되는 어종">
-              {(()=>{
-                // 이번 달 시즌인 어종 전부 (피크 먼저, 그다음 시즌)
-                const inSeasonFish=FISH.filter(f=>f.seasonAll.includes(month))
-                  .sort((a,b)=>{
-                    const ap=a.seasonPeak.includes(month)?0:1;
-                    const bp=b.seasonPeak.includes(month)?0:1;
-                    return ap-bp;
-                  });
-                if(inSeasonFish.length===0) return <div style={{color:C.gray,fontSize:13}}>이번 달 시즌 어종 정보 준비 중</div>;
-                return inSeasonFish.map(f=>{
-                  const isPeak=f.seasonPeak.includes(month);
-                  const okTemp=seaTemp!=null&&seaTemp>=f.tempMin&&seaTemp<=f.tempMax;
-                  const nowBanned=isInBanPeriod(f.ban,today);
-                  return(
-                    <div key={f.id} onClick={()=>{setSelFish(f);setTab("fish");}} style={{display:"flex",alignItems:"center",gap:10,padding:"11px 0",borderBottom:`1px solid ${C.border}`,cursor:"pointer"}}>
-                      <span style={{fontSize:26}}>{f.emoji}</span>
-                      <div style={{flex:1}}>
-                        <div style={{fontSize:15,fontWeight:700,display:"flex",alignItems:"center",gap:6}}>
-                          {f.name}
-                          {nowBanned&&<span style={{fontSize:10,fontWeight:700,padding:"1px 6px",borderRadius:6,background:"#3a1515",color:"#ff6b6b"}}>금어기</span>}
-                        </div>
-                        <div style={{fontSize:11,color:C.gray}}>적정 {f.tempMin}~{f.tempMax}℃ · {f.tideBest} · 피크 {f.peak}</div>
-                      </div>
-                      <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end"}}>
-                        <span style={{fontSize:11,fontWeight:700,padding:"3px 9px",borderRadius:8,background:isPeak?"#1f9d55":C.amber,color:"#fff"}}>{isPeak?"🎣 피크":"시즌"}</span>
-                        {seaTemp!=null&&<span style={{fontSize:10,color:okTemp?"#1fd579":C.gray}}>{okTemp?"수온 적정":"수온 체크"}</span>}
-                      </div>
-                    </div>
-                  );
-                });
-              })()}
-              <div style={{fontSize:11,color:C.gray,marginTop:10,lineHeight:1.5}}>
-                <span style={{color:"#1f9d55"}}>🎣 피크</span> = 지금이 가장 잘 되는 철 · <span style={{color:C.amber}}>시즌</span> = 노려볼 만함 · 어종 누르면 상세 정보
-              </div>
-            </Card>
-          </>
-        )}
-
-        {/* ═══ 어종별 ═══ */}
-        {!loading && tab==="fish" && (
-          <>
-            <div style={{fontSize:13,color:C.gray,marginBottom:10,lineHeight:1.6}}>
-              낚시꾼이 노리는 <b style={{color:C.blue}}>{FISH.length}종</b>. 12개월 시즌바에서 <b style={{color:"#1f9d55"}}>진한 초록</b>이 피크, 연한 초록이 시즌이에요.
-            </div>
-            {/* 카테고리 필터 */}
-            <div style={{display:"flex",gap:8,marginBottom:12}}>
-              {CATS.map(c=>(
-                <button key={c} onClick={()=>setSelCat(c)} style={{padding:"7px 16px",borderRadius:16,border:"none",background:selCat===c?C.blue:C.card,color:selCat===c?"#fff":C.gray,fontSize:13,fontWeight:700,cursor:"pointer"}}>
-                  {c==="어류"?"🐟 어류":c==="두족류"?"🦑 오징어·문어":c}
-                </button>
-              ))}
-            </div>
-            {/* 어종 칩 */}
-            <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:14}}>
-              {FISH.filter(f=>selCat==="전체"||f.cat===selCat).map(f=>{const on=selFish.id===f.id;const s=fishInSeason(f);return(
-                <button key={f.id} onClick={()=>setSelFish(f)} style={{padding:"8px 13px",borderRadius:20,border:on?`1px solid ${C.blue}`:`1px solid ${C.border}`,background:on?C.blue:C.card,color:on?"#fff":C.gray,fontSize:14,fontWeight:700,cursor:"pointer",position:"relative"}}>
-                  {f.emoji} {f.name}{s&&<span style={{position:"absolute",top:-4,right:-4,width:9,height:9,borderRadius:"50%",background:"#1f9d55",border:`1.5px solid ${C.bg}`}}/>}
-                </button>);})}
-            </div>
-            {(()=>{const f=selFish;const inS=fishInSeason(f);const inAll=f.seasonAll.includes(month);const ts=seaTemp==null?null:(seaTemp>=f.tempMin&&seaTemp<=f.tempMax?"적정":seaTemp<f.tempMin?"낮음":"높음");const nowBanned=isInBanPeriod(f.ban,today);return(
-              <Card>
-                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-                  <span style={{fontSize:34}}>{f.emoji}</span>
-                  <div><div style={{fontSize:22,fontWeight:800}}>{f.name}</div><div style={{fontSize:11,color:C.gray}}>{f.cat}</div></div>
-                  <div style={{marginLeft:"auto",display:"flex",gap:6,flexWrap:"wrap",justifyContent:"flex-end"}}>
-                    <span style={{fontSize:12,fontWeight:700,padding:"4px 10px",borderRadius:8,background:inS?"#1f9d55":inAll?C.amber:"#9db3c4",color:"#fff"}}>{inS?"피크 🎣":inAll?"시즌":"비시즌"}</span>
-                    {ts&&<span style={{fontSize:12,fontWeight:700,padding:"4px 10px",borderRadius:8,background:ts==="적정"?"#1f9d55":C.amber,color:"#fff"}}>수온 {ts}</span>}
-                  </div>
-                </div>
-
-                {/* 금어기 중이면 빨간 경고 배너 */}
-                {nowBanned && (
-                  <div style={{background:"#3a1515",border:"1px solid #e05353",borderRadius:12,padding:"12px 14px",marginBottom:10,display:"flex",alignItems:"center",gap:10}}>
-                    <span style={{fontSize:24}}>🚫</span>
-                    <div><div style={{fontSize:14,fontWeight:800,color:"#ff6b6b"}}>지금 금어기입니다</div><div style={{fontSize:12,color:"#ffb3b3",marginTop:2}}>{f.ban} · 포획 시 과태료 등 처벌 대상</div></div>
-                  </div>
-                )}
-
-                {/* 12개월 시즌 바 */}
-                <div style={{background:C.card2,borderRadius:12,padding:"12px 14px",marginBottom:10}}>
-                  <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:8}}>
-                    <span style={{color:C.lblue,fontWeight:700}}>📅 시즌 캘린더</span>
-                    <span style={{color:"#1fd579",fontWeight:700}}>피크 {f.peak}</span>
-                  </div>
-                  <div style={{display:"flex",gap:2}}>
-                    {[1,2,3,4,5,6,7,8,9,10,11,12].map(m=>{
-                      const isPeak=f.seasonPeak.includes(m);const isSeason=f.seasonAll.includes(m);const isNow=m===month;
-                      return(
-                        <div key={m} style={{flex:1,textAlign:"center"}}>
-                          <div style={{height:22,borderRadius:4,background:isPeak?"#1f9d55":isSeason?"rgba(31,157,85,0.35)":"#1a2a3a",border:isNow?`1.5px solid ${C.gold}`:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                            {isNow&&<span style={{fontSize:8,color:C.gold}}>●</span>}
-                          </div>
-                          <div style={{fontSize:9,color:isNow?C.gold:C.gray,marginTop:3,fontWeight:isNow?700:400}}>{m}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div style={{fontSize:10,color:C.gray,marginTop:8}}>
-                    <span style={{color:C.gold}}>●</span> 이번 달({month}월) · <span style={{color:"#1f9d55"}}>■</span> 피크 · <span style={{color:"rgba(31,157,85,0.6)"}}>■</span> 시즌
-                  </div>
-                </div>
-
-                {/* 적정 수온 바 */}
-                <div style={{background:C.card2,borderRadius:12,padding:"12px 14px",marginBottom:10}}>
-                  <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:6}}><span style={{color:C.lblue,fontWeight:700}}>🌡️ 적정 수온</span><span style={{fontWeight:700}}>{f.tempMin}~{f.tempMax}℃</span></div>
-                  <div style={{position:"relative",height:10,background:"#1a2a3a",borderRadius:5,overflow:"hidden"}}>
-                    <div style={{position:"absolute",left:`${f.tempMin/30*100}%`,width:`${(f.tempMax-f.tempMin)/30*100}%`,top:0,bottom:0,background:"linear-gradient(90deg,#4a9de0,#1f9d55)"}}/>
-                    {seaTemp!=null&&<div style={{position:"absolute",left:`${Math.min(100,Math.max(0,seaTemp/30*100))}%`,top:-3,width:2,height:16,background:C.gold}}/>}
-                  </div>
-                  {seaTemp!=null&&<div style={{fontSize:11,color:C.gold,marginTop:5}}>▲ 현재 {region.name} {seaTemp.toFixed(1)}°</div>}
-                  <div style={{fontSize:11,color:C.gray,marginTop:4}}>{f.tempNote}</div>
-                </div>
-
-                <Row label="🌊 적정 물때" value={f.tideBest} note={f.tideNote}/>
-                <Row label="📅 시즌" value={f.season} note={`피크 ${f.peak}`} highlight={inS}/>
-                <Row label="📏 수심대" value={f.depth}/>
-                <Row label="⏰ 베스트" value={f.best}/>
-
-                {/* 금어기 · 금지체장 (법적 규제) */}
-                <div style={{marginTop:12,background:nowBanned?"#2a1818":"#1a1410",borderRadius:12,padding:"12px 14px",border:`1px solid ${nowBanned?"#e05353":"#4a3a1a"}`}}>
-                  <div style={{fontSize:12,color:"#ffcf70",fontWeight:700,marginBottom:8}}>⚖️ 법적 규제 (수산자원관리법)</div>
-                  <div style={{display:"flex",gap:10}}>
-                    <div style={{flex:1,background:"rgba(0,0,0,0.25)",borderRadius:10,padding:"10px 12px"}}>
-                      <div style={{fontSize:11,color:C.gray}}>🚫 금어기</div>
-                      <div style={{fontSize:15,fontWeight:700,color:f.ban.includes("없음")?C.gray:"#ff9d6a",marginTop:3}}>{f.ban}</div>
-                    </div>
-                    <div style={{flex:1,background:"rgba(0,0,0,0.25)",borderRadius:10,padding:"10px 12px"}}>
-                      <div style={{fontSize:11,color:C.gray}}>📏 금지체장</div>
-                      <div style={{fontSize:15,fontWeight:700,color:f.minSize.includes("없음")?C.gray:"#ffcf70",marginTop:3}}>{f.minSize}</div>
-                    </div>
-                  </div>
-                  <div style={{fontSize:11,color:C.gray,marginTop:8,lineHeight:1.5}}>{f.banNote}</div>
-                </div>
-
-                <div style={{marginTop:12,background:C.card2,borderRadius:12,padding:"12px 14px"}}>
-                  <div style={{fontSize:12,color:C.lblue,fontWeight:700,marginBottom:8}}>💡 조과 팁</div>
-                  {f.tips.map((t,i)=><div key={i} style={{fontSize:13,color:"#cdd9e5",lineHeight:1.7,paddingLeft:14,position:"relative"}}><span style={{position:"absolute",left:0,color:C.blue}}>·</span>{t}</div>)}
-                </div>
-              </Card>
-            );})()}
-            <div style={{textAlign:"center",fontSize:11,color:"#3d5670",marginTop:16,lineHeight:1.7}}>
-              어종 정보는 낚시 매체·전문 자료 기반 참고값입니다.<br/>
-              <b style={{color:"#8a7a50"}}>금어기·금지체장은 2026년 기준이며 매년·지역별로 바뀝니다. 출조 전 해양수산부·지자체 최신 고시를 꼭 확인하세요.</b>
-            </div>
-          </>
-        )}
-
         {/* ═══ 포인트 (지도·해도 링크) ═══ */}
         {!loading && tab==="point" && (
           <>
@@ -1087,10 +932,11 @@ export default function FishingApp(){
             <Card title="🗺️ 지도 · 해도 바로가기">
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
                 {[
-                  {emoji:"🌊",title:"전자해도",desc:"수심·등수심선",url:"https://www.khoa.go.kr/oceanmap/main.do"},
-                  {emoji:"💨",title:"Windy 바람",desc:`${region.name} 바람지도`,url:`https://www.windy.com/?${region.lat},${region.lon},9`},
-                  {emoji:"🌡️",title:"실시간 수온",desc:"수산과학원 관측",url:"https://www.nifs.go.kr/risa/main.risa"},
-                  {emoji:"⛅",title:"기상청 바다",desc:"해상 예보·특보",url:"https://www.weather.go.kr/w/ocean/marine/forecast.do"},
+                  {emoji:"🌊",title:"전자해도 (KHOA)",desc:"국립해양조사원 · 수심·등수심선",url:"https://www.khoa.go.kr/oceanmap/main.do"},
+                  {emoji:"💨",title:"Windy 바람지도",desc:"바람·파도 지도 앱 · 선택 지역 위치로 열림",url:`https://www.windy.com/?${region.lat},${region.lon},9`},
+                  {emoji:"🌡️",title:"실시간 수온 (수심별)",desc:"국립해양조사원 관측소 · 표층~수심별 실측 수온",url:"https://www.khoa.go.kr/koofs/kor/observation/obs_real.do"},
+                  {emoji:"🌊",title:"실시간 어장 수온",desc:"국립수산과학원 · 연안 양식장 관측",url:"https://www.nifs.go.kr/risa/main.risa"},
+                  {emoji:"⛅",title:"기상청 해상예보",desc:"해상 예보·특보",url:"https://www.weather.go.kr/w/ocean/marine/forecast.do"},
                 ].map((L,i)=>(
                   <a key={i} href={L.url} target="_blank" rel="noopener" style={{display:"block",background:C.card2,borderRadius:12,padding:"14px 12px",textDecoration:"none",color:C.text,border:`1px solid ${C.border}`}}>
                     <div style={{fontSize:24}}>{L.emoji}</div>
@@ -1115,8 +961,8 @@ export default function FishingApp(){
 
       {/* 하단 탭바 (주요 4개 고정) */}
       <div style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(255,255,255,0.97)",borderTop:`1px solid ${C.border}`,display:"flex",maxWidth:480,margin:"0 auto",boxShadow:"0 -2px 10px rgba(31,111,178,0.08)"}}>
-        {[["forecast","🌊","예보"],["tide","🌙","물때"],["predict","🎯","낚시예측"],["fish","🐟","어종"]].map(([id,ic,label])=>(
-          <button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:"10px 0 13px",background:"none",border:"none",cursor:"pointer",color:tab===id?C.blue:C.gray,borderTop:tab===id?`2px solid ${C.blue}`:"2px solid transparent"}}>
+        {[["forecast","🌊","예보"],["tide","🌙","물때"],["chart","🗺️","전자해도"],["point","📍","포인트"]].map(([id,ic,label])=>(
+          <button key={id} onClick={()=>{ if(id==="chart"){ window.open(CHART_URL,"_blank"); } else { setTab(id); } }} style={{flex:1,padding:"10px 0 13px",background:"none",border:"none",cursor:"pointer",color:tab===id?C.blue:C.gray,borderTop:tab===id?`2px solid ${C.blue}`:"2px solid transparent"}}>
             <div style={{fontSize:19}}>{ic}</div><div style={{fontSize:11,fontWeight:700,marginTop:2}}>{label}</div>
           </button>
         ))}
