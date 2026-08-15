@@ -1,11 +1,3 @@
-
-2단계_복사해서붙여넣기.txt
-
-페이지
-1
-/
-1
-100%
 name: 바다조황 APK 빌드
 
 on:
@@ -131,4 +123,3 @@ jobs:
           name: badajohwang-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-2단계_복사해서붙여넣기.txt 표시 중입니다.
