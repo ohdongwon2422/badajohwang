@@ -3,21 +3,85 @@ import { useState, useEffect } from "react";
 // ══════════════════════════════════════════════════════════
 //  지역
 // ══════════════════════════════════════════════════════════
+// 좌표는 파고 데이터가 잘 나오도록 항구는 방파제 끝~외해 쪽, 섬은 섬 주변 열린 바다 기준
+// kind: "내만"(항·방파제·연안) / "원도"(배 타고 나가는 먼바다 섬)
 const REGIONS = [
-  { id:"incheon", name:"인천", sea:"서해", lat:37.451, lon:126.592 },
-  { id:"taean", name:"태안(안흥)", sea:"서해", lat:36.674, lon:126.129 },
-  { id:"gunsan", name:"군산", sea:"서해", lat:35.976, lon:126.563 },
-  { id:"mokpo", name:"목포", sea:"서해", lat:34.779, lon:126.375 },
-  { id:"wando", name:"완도", sea:"남해", lat:34.316, lon:126.759 },
-  { id:"yeosu", name:"여수", sea:"남해", lat:34.747, lon:127.766 },
-  { id:"samcheonpo", name:"삼천포", sea:"남해", lat:34.925, lon:128.064 },
-  { id:"tongyeong", name:"통영", sea:"남해", lat:34.827, lon:128.434 },
-  { id:"busan", name:"부산", sea:"남해", lat:35.096, lon:129.035 },
-  { id:"pohang", name:"포항", sea:"동해", lat:36.051, lon:129.376 },
-  { id:"gangneung", name:"강릉(주문진)", sea:"동해", lat:37.891, lon:128.831 },
-  { id:"sokcho", name:"속초", sea:"동해", lat:38.207, lon:128.594 },
-  { id:"jeju", name:"제주", sea:"제주", lat:33.527, lon:126.543 },
+  // ═══ 서해 · 내만 ═══
+  { id:"incheon",     name:"인천(연안부두)", sea:"서해", kind:"내만", lat:37.445, lon:126.590 },
+  { id:"yeongheung",  name:"영흥도",         sea:"서해", kind:"내만", lat:37.245, lon:126.428 },
+  { id:"daebu",       name:"대부도(방아머리)", sea:"서해", kind:"내만", lat:37.289, lon:126.560 },
+  { id:"dangjin",     name:"당진(왜목)",     sea:"서해", kind:"내만", lat:37.001, lon:126.520 },
+  { id:"taean",       name:"태안(안흥항)",   sea:"서해", kind:"내만", lat:36.660, lon:126.130 },
+  { id:"mongsanpo",   name:"태안(몽산포)",   sea:"서해", kind:"내만", lat:36.640, lon:126.300 },
+  { id:"daecheon",    name:"보령(대천항)",   sea:"서해", kind:"내만", lat:36.320, lon:126.510 },
+  { id:"muchangpo",   name:"보령(무창포)",   sea:"서해", kind:"내만", lat:36.257, lon:126.520 },
+  { id:"seocheon",    name:"서천(홍원항)",   sea:"서해", kind:"내만", lat:36.070, lon:126.540 },
+  { id:"gunsan",      name:"군산(비응항)",   sea:"서해", kind:"내만", lat:35.930, lon:126.520 },
+  { id:"gyeokpo",     name:"부안(격포항)",   sea:"서해", kind:"내만", lat:35.617, lon:126.460 },
+  { id:"yeonggwang",  name:"영광(안마도권)", sea:"서해", kind:"내만", lat:35.320, lon:126.130 },
+  // ═══ 서해 · 원도(먼바다 섬) ═══
+  { id:"gyeokryeol",  name:"격렬비열도",     sea:"서해", kind:"원도", lat:36.630, lon:125.560 },
+  { id:"eocheong",    name:"어청도",         sea:"서해", kind:"원도", lat:36.117, lon:125.980 },
+  { id:"yeondo",      name:"연도(외연도)",   sea:"서해", kind:"원도", lat:36.230, lon:126.080 },
+  { id:"gaeya",       name:"개야도",         sea:"서해", kind:"원도", lat:36.010, lon:126.400 },
+  { id:"wido",        name:"위도",           sea:"서해", kind:"원도", lat:35.618, lon:126.300 },
+  { id:"gageo",       name:"가거도",         sea:"서해", kind:"원도", lat:34.071, lon:125.113 },
+  { id:"hongdo",      name:"홍도",           sea:"서해", kind:"원도", lat:34.686, lon:125.196 },
+  { id:"heuksan",     name:"흑산도",         sea:"서해", kind:"원도", lat:34.681, lon:125.435 },
+
+  // ═══ 남해 · 내만 ═══
+  { id:"mokpo",       name:"목포",           sea:"남해", kind:"내만", lat:34.760, lon:126.340 },
+  { id:"jindo",       name:"진도(서망항)",   sea:"남해", kind:"내만", lat:34.360, lon:126.150 },
+  { id:"wando",       name:"완도",           sea:"남해", kind:"내만", lat:34.300, lon:126.760 },
+  { id:"goheung",     name:"고흥(녹동항)",   sea:"남해", kind:"내만", lat:34.520, lon:127.130 },
+  { id:"yeosu",       name:"여수",           sea:"남해", kind:"내만", lat:34.740, lon:127.760 },
+  { id:"namhae",      name:"남해(미조항)",   sea:"남해", kind:"내만", lat:34.700, lon:127.900 },
+  { id:"samcheonpo",  name:"삼천포",         sea:"남해", kind:"내만", lat:34.900, lon:128.070 },
+  { id:"changseon",   name:"남해(창선)",     sea:"남해", kind:"내만", lat:34.850, lon:128.000 },
+  { id:"tongyeong",   name:"통영",           sea:"남해", kind:"내만", lat:34.800, lon:128.430 },
+  { id:"geoje",       name:"거제(장승포)",   sea:"남해", kind:"내만", lat:34.880, lon:128.700 },
+  { id:"busan",       name:"부산(가덕도)",   sea:"남해", kind:"내만", lat:35.020, lon:128.830 },
+  { id:"busanhae",    name:"부산(해운대권)", sea:"남해", kind:"내만", lat:35.150, lon:129.170 },
+  // ═══ 남해 · 원도(먼바다 섬) ═══
+  { id:"gukdo",       name:"국도",           sea:"남해", kind:"원도", lat:34.550, lon:128.230 },
+  { id:"jwasari",     name:"좌사리도",       sea:"남해", kind:"원도", lat:34.520, lon:128.180 },
+  { id:"galdo",       name:"갈도",           sea:"남해", kind:"원도", lat:34.470, lon:128.130 },
+  { id:"maemuldo",    name:"매물도",         sea:"남해", kind:"원도", lat:34.640, lon:128.560 },
+  { id:"yeoseo",      name:"여서도",         sea:"남해", kind:"원도", lat:34.040, lon:126.920 },
+  { id:"cheongsan",   name:"청산도",         sea:"남해", kind:"원도", lat:34.170, lon:126.870 },
+  { id:"geomun",      name:"거문도",         sea:"남해", kind:"원도", lat:34.030, lon:127.310 },
+  { id:"baekdo",      name:"백도",           sea:"남해", kind:"원도", lat:34.030, lon:127.560 },
+  { id:"sori",        name:"연화·소리도",    sea:"남해", kind:"원도", lat:34.560, lon:127.780 },
+  { id:"noksan",      name:"거제(홍도·매물권)", sea:"남해", kind:"원도", lat:34.520, lon:128.560 },
+
+  // ═══ 동해 · 연안 ═══
+  { id:"busan_e",     name:"부산(기장)",     sea:"동해", kind:"내만", lat:35.240, lon:129.230 },
+  { id:"ulsan",       name:"울산(정자항)",   sea:"동해", kind:"내만", lat:35.640, lon:129.470 },
+  { id:"guryongpo",   name:"포항(구룡포)",   sea:"동해", kind:"내만", lat:35.990, lon:129.560 },
+  { id:"pohang",      name:"포항(영일만)",   sea:"동해", kind:"내만", lat:36.070, lon:129.440 },
+  { id:"yeongdeok",   name:"영덕(강구항)",   sea:"동해", kind:"내만", lat:36.360, lon:129.400 },
+  { id:"uljin",       name:"울진(후포항)",   sea:"동해", kind:"내만", lat:36.680, lon:129.470 },
+  { id:"samcheok",    name:"삼척(장호항)",   sea:"동해", kind:"내만", lat:37.250, lon:129.340 },
+  { id:"donghae",     name:"동해(묵호항)",   sea:"동해", kind:"내만", lat:37.550, lon:129.130 },
+  { id:"gangneung",   name:"강릉(주문진)",   sea:"동해", kind:"내만", lat:37.900, lon:128.840 },
+  { id:"yangyang",    name:"양양(남애항)",   sea:"동해", kind:"내만", lat:38.010, lon:128.720 },
+  { id:"sokcho",      name:"속초",           sea:"동해", kind:"내만", lat:38.210, lon:128.610 },
+  { id:"goseong_e",   name:"고성(거진항)",   sea:"동해", kind:"내만", lat:38.450, lon:128.470 },
+  { id:"ulleung",     name:"울릉도",         sea:"동해", kind:"원도", lat:37.480, lon:130.900 },
+
+  // ═══ 제주 ═══
+  { id:"jeju",        name:"제주(제주항)",   sea:"제주", kind:"내만", lat:33.530, lon:126.540 },
+  { id:"aewol",       name:"제주(애월)",     sea:"제주", kind:"내만", lat:33.470, lon:126.310 },
+  { id:"hallim",      name:"제주(한림항)",   sea:"제주", kind:"내만", lat:33.410, lon:126.260 },
+  { id:"moseulpo",    name:"제주(모슬포)",   sea:"제주", kind:"내만", lat:33.210, lon:126.250 },
+  { id:"seogwipo",    name:"서귀포",         sea:"제주", kind:"내만", lat:33.230, lon:126.560 },
+  { id:"seongsan",    name:"제주(성산포)",   sea:"제주", kind:"내만", lat:33.470, lon:126.940 },
+  { id:"gimnyeong",   name:"제주(김녕항)",   sea:"제주", kind:"내만", lat:33.560, lon:126.760 },
+  { id:"chuja",       name:"추자도",         sea:"제주", kind:"원도", lat:33.950, lon:126.300 },
+  { id:"marado",      name:"마라도",         sea:"제주", kind:"원도", lat:33.117, lon:126.267 },
+  { id:"gapado",      name:"가파도",         sea:"제주", kind:"원도", lat:33.170, lon:126.270 },
 ];
+const SEAS = ["서해","남해","동해","제주"];
 
 // ══════════════════════════════════════════════════════════
 //  어종 데이터 (웹 검색 기반 실제값) · peak=피크월, season=전체시즌
@@ -124,7 +188,7 @@ function getMulttae(d){
   else if(dist<6){strength="중물";level=3;}else if(dist<8){strength="조금물";level=2;}else{strength="조금";level=1;}
   return { name:MULTTAE[idx], strength, level, lunarDay:ld };
 }
-// 하루 조석 4회 (시각 + 조위 근사 cm)
+// 하루 조석 4회 (시각 + 조위 근사 cm + 조류세기 %)
 function getTides(d){
   const a=lunarAge(d); const baseHigh=(a*0.8067)%12.42;
   const amp = 150 + 150*Math.abs(Math.cos(a/29.53*Math.PI*2)); // 사리 크고 조금 작게
@@ -136,8 +200,31 @@ function getTides(d){
     out.push({ type:types[i], time:`${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}`, level:Math.max(0,lvl), hour:hh+mm/60 });
     t+=6.21;
   }
-  return out.sort((x,y)=>x.hour-y.hour);
+  out.sort((x,y)=>x.hour-y.hour);
+  return out;
 }
+// ── 조류 세기 % (종합 물 상태) ──
+// 물때(조석) + 파도 + 바람을 합쳐 그날 바다가 얼마나 세게 움직이는지 0~100%로 표현
+//   · 평상시(바람·파도 보통) 사리 ≈ 70%가 물때 최고치
+//   · 파도 완전 잔잔 ≈ 1~2%
+//   · 태풍·강풍이면 파도/바람 가산으로 100%까지 꽉 참 (100% 상한)
+// level: 물때 세기 1(조금)~5(사리) / waveH: 파고(m) / wind: 풍속(m/s)
+function currentFlowPct(level, waveH, wind){
+  // 1) 물때 기여분: 조금(level1) 약 6% → 사리(level5) 약 70%
+  const tideBase = [0, 6, 22, 40, 56, 70][level] ?? 40;
+  // 2) 파도 기여분: 0.5m 이하 거의 0 → 3m면 상한 근처. 평상시 작은 파고는 거의 영향 없게
+  const wv = waveH ?? 0;
+  const waveAdd = Math.max(0, (wv - 0.5)) * 16; // 1m≈8, 2m≈24, 3m≈40
+  // 3) 바람 기여분: 4m/s 이하 거의 0 → 강풍일수록 가산
+  const wd = wind ?? 0;
+  const windAdd = Math.max(0, (wd - 4)) * 2.2; // 10m/s≈13, 15m/s≈24
+  let pct = tideBase + waveAdd + windAdd;
+  // 파도가 정말 잔잔해도(0.5m↓) 조금 물때는 5~7% 유지 (완전 0 아님)
+  if(wv <= 0.5 && wd <= 3 && level <= 1) pct = Math.max(5, Math.min(pct, 7));
+  return Math.round(Math.max(1, Math.min(100, pct))); // 1~100% 상한
+}
+// 물때만의 대표 세기(파고·바람 모르는 목록/미래날짜용) — 사리 70%, 조금 6% 기준
+function tideOnlyPct(level){ return [0,6,22,40,56,70][level] ?? 40; }
 // 일출/일몰 (간이)
 function sunTimes(d,lat){
   const N=Math.floor((d-new Date(d.getFullYear(),0,0))/86400000);
@@ -162,16 +249,48 @@ function feelsSea(sea,air,wind,wave){
 // ══════════════════════════════════════════════════════════
 //  API
 // ══════════════════════════════════════════════════════════
+// 해양 데이터 1회 호출
+async function fetchMarine(lat,lon){
+  try{
+    const m=await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}`+
+      `&current=sea_surface_temperature,wave_height,wave_period,wave_direction,ocean_temperature_0m,ocean_temperature_20m,ocean_temperature_50m`+
+      `&hourly=wave_height,wave_period,wave_direction&timezone=Asia%2FSeoul&forecast_days=7`).then(r=>r.json());
+    return m;
+  }catch(e){ return null; }
+}
+// 파고 값이 실제로 들어있는지 검사
+function hasWave(m){
+  if(!m) return false;
+  const cur=m?.current?.wave_height;
+  const hrly=m?.hourly?.wave_height;
+  const hourlyOk = Array.isArray(hrly) && hrly.some(v=>v!=null);
+  return (cur!=null) || hourlyOk;
+}
 async function fetchAll(lat,lon){
   const wx=fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`+
     `&current=temperature_2m,apparent_temperature,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code,relative_humidity_2m,precipitation`+
     `&hourly=temperature_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation_probability`+
     `&daily=temperature_2m_max,temperature_2m_min,weather_code,wind_speed_10m_max,wind_direction_10m_dominant,precipitation_probability_max`+
     `&timezone=Asia%2FSeoul&wind_speed_unit=ms&forecast_days=7`).then(r=>r.json());
-  const mar=fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}`+
-    `&current=sea_surface_temperature,wave_height,wave_period,wave_direction,ocean_temperature_0m,ocean_temperature_20m,ocean_temperature_50m`+
-    `&hourly=wave_height,wave_period,wave_direction&timezone=Asia%2FSeoul&forecast_days=7`).then(r=>r.json()).catch(()=>null);
-  const [w,m]=await Promise.all([wx,mar]); return {w,m};
+
+  // 해양 데이터: 파고가 안 나오면(내만 지형) 바다 쪽으로 좌표를 옮겨가며 재시도
+  // 8방위로 약 3km(≈0.03도)씩, 최대 6km까지 넓혀가며 열린 바다를 찾음
+  const marPromise=(async()=>{
+    let m=await fetchMarine(lat,lon);
+    if(hasWave(m)) return m;
+    const offsets=[
+      [0.03,0],[-0.03,0],[0,0.03],[0,-0.03],
+      [0.03,0.03],[0.03,-0.03],[-0.03,0.03],[-0.03,-0.03],
+      [0.06,0],[-0.06,0],[0,0.06],[0,-0.06],
+    ];
+    for(const [dLat,dLon] of offsets){
+      const m2=await fetchMarine(lat+dLat, lon+dLon);
+      if(hasWave(m2)) return m2;
+    }
+    return m; // 다 실패하면 원본(파고 null) 반환
+  })();
+
+  const [w,m]=await Promise.all([wx,marPromise]); return {w,m};
 }
 
 // 미리보기/오프라인용 샘플 데이터 (실제 앱에선 위 fetchAll이 진짜 데이터를 채움)
@@ -214,7 +333,47 @@ function windDir(deg){return ["북","북동","동","남동","남","남서","서"
 function windArrow(deg){return ["↓","↙","←","↖","↑","↗","→","↘"][Math.round(deg/45)%8];} // 바람이 불어가는 방향
 function fishingScore(level,wind,wave){let s=0;if(level===3||level===4)s+=2;else if(level===5||level===2)s+=1;if(wind<4)s+=2;else if(wind<7)s+=1;else if(wind>=10)s-=1;if(wave!=null){if(wave<0.5)s+=1;else if(wave>=1.5)s-=1;}if(s>=4)return{label:"출조 최적",color:"#1f9d55",emoji:"🎣"};if(s>=2)return{label:"무난",color:"#c98a00",emoji:"🙂"};return{label:"신중",color:"#c0392b",emoji:"⚠️"};}
 
-const C={bg:"#0a1929",card:"#0f2438",card2:"#0a1e33",border:"#1e3a52",blue:"#4a9de0",lblue:"#7eb3e0",gray:"#8aa5bd",amber:"#c98a00",gold:"#ffd27a"};
+// 밝은 낮 바다 테마
+//  bg=연한 하늘 배경 / card=흰 카드 / card2=아주 연한 하늘 / text=진한 남색 글자
+const C={
+  bg:"#eaf5fc",        // 전체 배경: 밝은 하늘빛
+  card:"#ffffff",      // 카드: 흰색
+  card2:"#eef6fc",     // 보조 카드/칸: 아주 연한 하늘
+  border:"#d3e6f2",    // 옅은 하늘 테두리
+  blue:"#1f6fb2",      // 진한 바다색(강조·제목)
+  lblue:"#3a90cf",     // 밝은 바다색(보조 강조)
+  gray:"#5f7c92",      // 회색 글자(밝은 배경용, 충분히 진하게)
+  amber:"#b5730a",     // 경고 앰버(밝은 배경용 진하게)
+  gold:"#a06a00",      // 골드(밝은 배경에서 읽히게 진하게)
+  text:"#12344f",      // 기본 본문 글자: 진한 남색
+  textSub:"#3d5a72",   // 보조 본문 글자
+};
+
+// ══════════════════════════════════════════════════════════
+//  기상특보 (자체 판정 · 풍속/파고 기준)
+//  ※ 공식 기상청 특보 아님 — 앱이 가진 예보값으로 위험 수준을 자체 계산
+//  기상청 풍랑주의보 기준(풍속 14m/s↑ 3h지속 또는 파고 3m↑)을 참고한 근사치
+// ══════════════════════════════════════════════════════════
+function getMarineAlert(windMax, waveMax, gustMax){
+  // windMax: 향후 예보 최대 풍속(m/s), waveMax: 최대 파고(m), gustMax: 최대 순간풍속
+  const w=windMax??0, wv=waveMax??0, g=gustMax??0;
+  // 경보 수준 (풍랑경보 근사: 풍속 21m/s↑ 또는 파고 5m↑)
+  if(w>=21 || wv>=5 || g>=26){
+    return {level:"경보", label:"풍랑경보 수준", color:"#c0392b", bg:"rgba(192,57,43,0.18)",
+      msg:"매우 위험 — 출조 금지 권장", emoji:"🚨"};
+  }
+  // 주의보 수준 (풍랑주의보 근사: 풍속 14m/s↑ 또는 파고 3m↑)
+  if(w>=14 || wv>=3 || g>=20){
+    return {level:"주의보", label:"풍랑주의보 수준", color:"#e67e22", bg:"rgba(230,126,34,0.16)",
+      msg:"위험 — 출조 재검토, 안전 최우선", emoji:"⚠️"};
+  }
+  // 주의 수준 (강풍/높은 물결 근접)
+  if(w>=10 || wv>=2 || g>=14){
+    return {level:"주의", label:"바람·물결 주의", color:"#c98a00", bg:"rgba(201,138,0,0.14)",
+      msg:"연안·갯바위 주의, 원도 출조 신중", emoji:"🟡"};
+  }
+  return null; // 특보 없음(양호)
+}
 
 // ══════════════════════════════════════════════════════════
 //  메인
@@ -226,7 +385,9 @@ const TABS=[
 
 export default function FishingApp(){
   const [tab,setTab]=useState("forecast");
-  const [region,setRegion]=useState(REGIONS[6]);
+  const _defaultRegion=REGIONS.find(r=>r.id==="samcheonpo")||REGIONS[0];
+  const [region,setRegion]=useState(_defaultRegion);
+  const [selSea,setSelSea]=useState(_defaultRegion.sea); // 선택한 바다(서해/남해/동해/제주)
   const [data,setData]=useState(null);
   const [loading,setLoading]=useState(true);
   const [selFish,setSelFish]=useState(FISH[0]);
@@ -248,6 +409,8 @@ export default function FishingApp(){
     return()=>{alive=false;};
   },[region]);
 
+  useEffect(()=>{ if(region.sea!==selSea) setSelSea(region.sea); },[region]);
+
   const mt=getMulttae(today);
   const tides=getTides(today);
   const sun=sunTimes(today,region.lat);
@@ -260,36 +423,75 @@ export default function FishingApp(){
   const [wxText,wxEmoji]=WMO[cur?.weather_code??0]||["-","🌡️"];
   const feels=cur?feelsSea(seaTemp,cur.temperature_2m,cur.wind_speed_10m,waveH):null;
   const score=cur?fishingScore(mt.level,cur.wind_speed_10m,waveH):null;
+  // ── 기상특보 판정: 향후 24시간 최대 풍속·파고·순간풍속 ──
+  const marineAlert=(()=>{
+    const hw=data?.w?.hourly, hm=data?.m?.hourly;
+    if(!hw?.wind_speed_10m) return null;
+    const n=Math.min(24, hw.wind_speed_10m.length);
+    let wMax=cur?.wind_speed_10m??0, gMax=cur?.wind_gusts_10m??0, wvMax=waveH??0;
+    for(let i=0;i<n;i++){
+      if(hw.wind_speed_10m[i]!=null) wMax=Math.max(wMax, hw.wind_speed_10m[i]);
+      if(hw.wind_gusts_10m?.[i]!=null) gMax=Math.max(gMax, hw.wind_gusts_10m[i]);
+      if(hm?.wave_height?.[i]!=null) wvMax=Math.max(wvMax, hm.wave_height[i]);
+    }
+    return getMarineAlert(wMax, wvMax, gMax);
+  })();
   const dateStr=`${today.getMonth()+1}월 ${today.getDate()}일 (${["일","월","화","수","목","금","토"][today.getDay()]})`;
   const fishInSeason=f=>f.seasonPeak.includes(month);
 
   return(
-    <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'Pretendard',-apple-system,sans-serif",color:"#e8eef4",paddingBottom:72}}>
-      <style>{`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');*{box-sizing:border-box;margin:0}::-webkit-scrollbar{display:none}`}</style>
+    <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'Pretendard',-apple-system,sans-serif",color:C.text,paddingBottom:72}}>
+      <style>{`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');*{box-sizing:border-box;margin:0}::-webkit-scrollbar{display:none}
+        select option{background:#ffffff;color:#12344f;}`}</style>
 
       {/* 헤더 */}
-      <div style={{background:"linear-gradient(135deg,#0d2b45,#1a4d7a)",padding:"14px 16px 14px",borderBottom:`1px solid ${C.border}`,position:"sticky",top:0,zIndex:10}}>
+      <div style={{background:"linear-gradient(160deg,#5cb3e8 0%,#3d8fd4 45%,#2f6fb5 100%)",padding:"14px 16px 20px",borderBottom:"none",position:"sticky",top:0,zIndex:10,overflow:"hidden"}}>
+        {/* 밝은 낮 바다 물결 그래픽 (헤더 하단 은은하게) */}
+        <svg viewBox="0 0 480 60" preserveAspectRatio="none" style={{position:"absolute",left:0,right:0,bottom:-1,width:"100%",height:34,opacity:0.5,pointerEvents:"none"}}>
+          <path d="M0,30 C80,10 160,50 240,30 C320,10 400,50 480,30 L480,60 L0,60 Z" fill="rgba(255,255,255,0.25)"/>
+          <path d="M0,40 C80,22 160,58 240,40 C320,22 400,58 480,40 L480,60 L0,60 Z" fill="rgba(255,255,255,0.18)"/>
+        </svg>
+        <div style={{position:"relative",zIndex:1}}>
         {/* 앱 로고 */}
         <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:12}}>
           <span style={{fontSize:22}}>🌊</span>
-          <span style={{fontSize:20,fontWeight:900,letterSpacing:-0.5,color:"#fff"}}>바다조황</span>
-          <span style={{fontSize:11,color:C.lblue,fontWeight:600,marginTop:4}}>물때·수온·날씨·어종</span>
+          <span style={{fontSize:20,fontWeight:900,letterSpacing:-0.5,color:"#fff",textShadow:"0 1px 3px rgba(0,40,80,0.35)"}}>바다조황</span>
+          <span style={{fontSize:11,color:"rgba(255,255,255,0.9)",fontWeight:600,marginTop:4}}>물때·수온·날씨·어종</span>
         </div>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <select value={region.id} onChange={e=>setRegion(REGIONS.find(r=>r.id===e.target.value))}
-            style={{padding:"8px 12px",fontSize:17,fontWeight:800,borderRadius:10,border:`1px solid #2a5a8a`,background:C.card2,color:"#fff",appearance:"none"}}>
-            {REGIONS.map(r=><option key={r.id} value={r.id}>📍 {r.name} · {r.sea}</option>)}
-          </select>
-          <div style={{textAlign:"right",fontSize:11,color:C.gray}}>{dateStr}<br/>음력 {mt.lunarDay}일 · {mt.name}</div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+          <div style={{display:"flex",gap:6,flex:1,minWidth:0}}>
+            {/* 1단계: 바다 선택 */}
+            <select value={selSea} onChange={e=>{
+                const sea=e.target.value; setSelSea(sea);
+                const first=REGIONS.find(r=>r.sea===sea);
+                if(first) setRegion(first); // 바다 바꾸면 그 바다 첫 포인트로 자동 이동
+              }}
+              style={{padding:"8px 8px",fontSize:15,fontWeight:800,borderRadius:10,border:"none",background:"rgba(255,255,255,0.95)",color:C.blue,appearance:"none",flexShrink:0}}>
+              {SEAS.map(s=><option key={s} value={s}>{s}</option>)}
+            </select>
+            {/* 2단계: 포인트 선택 (선택한 바다의 포인트만) */}
+            <select value={region.id} onChange={e=>setRegion(REGIONS.find(r=>r.id===e.target.value))}
+              style={{padding:"8px 10px",fontSize:15,fontWeight:800,borderRadius:10,border:"none",background:"rgba(255,255,255,0.95)",color:C.text,appearance:"none",flex:1,minWidth:0,textOverflow:"ellipsis"}}>
+              {REGIONS.filter(r=>r.sea===selSea).map(r=>(
+                <option key={r.id} value={r.id}>{r.kind==="원도"?"🚢 ":"📍 "}{r.name}</option>
+              ))}
+            </select>
+          </div>
+          <div style={{textAlign:"right",fontSize:11,color:"rgba(255,255,255,0.92)",flexShrink:0}}>{dateStr}<br/>음력 {mt.lunarDay}일 · {mt.name}</div>
+        </div>
+        <div style={{fontSize:11,color:"rgba(255,255,255,0.85)",marginTop:5}}>
+          🚢 = 배 타고 나가는 먼바다 섬(원도) · 현재: <span style={{color:"#fff",fontWeight:700}}>{region.name}</span>
+          {region.kind==="원도" && <span style={{color:"#ffe9b0"}}> · 출조 전 여객선·낚싯배 운항 확인</span>}
         </div>
         {/* 탭 스크롤 */}
         <div style={{display:"flex",gap:6,overflowX:"auto",marginTop:12}}>
           {TABS.map(([id,ic,label])=>(
             <button key={id} onClick={()=>setTab(id)} style={{flexShrink:0,padding:"7px 12px",borderRadius:18,border:"none",
-              background:tab===id?C.blue:"rgba(255,255,255,0.08)",color:tab===id?"#fff":C.lblue,fontSize:13,fontWeight:700,cursor:"pointer"}}>
+              background:tab===id?"#fff":"rgba(255,255,255,0.22)",color:tab===id?"#2f6fb5":"#fff",fontSize:13,fontWeight:700,cursor:"pointer"}}>
               {ic} {label}
             </button>
           ))}
+        </div>
         </div>
       </div>
 
@@ -298,6 +500,45 @@ export default function FishingApp(){
         {!loading && isSample && (
           <div style={{background:"rgba(201,138,0,0.15)",border:`1px solid ${C.amber}`,borderRadius:12,padding:"10px 14px",marginBottom:12,fontSize:12,color:C.gold,lineHeight:1.5}}>
             📌 미리보기 모드 — 지금은 <b>예시 데이터</b>로 화면을 보여드려요. 실제 앱에선 이 자리에 실시간 날씨·수온·파고가 들어갑니다.
+          </div>
+        )}
+
+        {/* ═══ 기상특보 배너 (모든 탭 공통) ═══ */}
+        {!loading && data && marineAlert && (
+          <div style={{background:marineAlert.bg,border:`1.5px solid ${marineAlert.color}`,borderRadius:12,padding:"11px 14px",marginBottom:12}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <span style={{fontSize:20}}>{marineAlert.emoji}</span>
+              <div style={{flex:1}}>
+                <div style={{fontSize:14,fontWeight:800,color:marineAlert.color}}>
+                  {marineAlert.label} · {region.name}
+                </div>
+                <div style={{fontSize:12,color:C.text,marginTop:2}}>{marineAlert.msg}</div>
+              </div>
+            </div>
+            <a href="https://www.weather.go.kr/w/weather/warning/status.do" target="_blank" rel="noreferrer"
+              style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6,marginTop:9,padding:"9px 0",
+              borderRadius:9,background:marineAlert.color,color:"#fff",fontSize:13,fontWeight:800,textDecoration:"none"}}>
+              🛰️ 기상청 공식 특보 확인하기 ›
+            </a>
+            <div style={{fontSize:10.5,color:C.gray,marginTop:7,lineHeight:1.5}}>
+              ※ 위 등급은 앱 예보값 기준 <b>자체 안전등급</b>이에요. 실제 발효 특보는 기상청에서 확인하세요.
+            </div>
+          </div>
+        )}
+        {!loading && data && !marineAlert && (
+          <div style={{background:"rgba(31,157,85,0.12)",border:`1px solid #1f9d55`,borderRadius:12,padding:"11px 14px",marginBottom:12}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <span style={{fontSize:17}}>✅</span>
+              <div style={{flex:1}}>
+                <span style={{fontSize:13,color:"#1f9d55",fontWeight:800}}>기상특보 없음 · {region.name}</span>
+                <span style={{fontSize:12,color:C.gray,marginLeft:6}}>바람·물결 양호</span>
+              </div>
+            </div>
+            <a href="https://www.weather.go.kr/w/weather/warning/status.do" target="_blank" rel="noreferrer"
+              style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6,marginTop:9,padding:"8px 0",
+              borderRadius:9,background:"rgba(31,157,85,0.15)",color:"#1f7d45",fontSize:12.5,fontWeight:700,textDecoration:"none",border:"1px solid rgba(31,157,85,0.4)"}}>
+              🛰️ 기상청 공식 특보 지도 보기 ›
+            </a>
           </div>
         )}
 
@@ -323,7 +564,7 @@ export default function FishingApp(){
                   <DepthTemp label="수심 20m" temp={seaTemp20} note="중층" C={C}/>
                   <DepthTemp label="수심 50m" temp={seaTemp50} note="바닥·선상" C={C}/>
                 </div>
-                <div style={{fontSize:10,color:"#5a7590",marginTop:8}}>※ 심층 수온은 해양모델 추정값 · 바닥 어종(우럭·광어·문어) 참고용</div>
+                <div style={{fontSize:10,color:C.gray,marginTop:8}}>※ 심층 수온은 해양모델 추정값 · 바닥 어종(우럭·광어·문어) 참고용</div>
               </Card>
             )}
             {/* 오늘 조석 미리보기 */}
@@ -364,16 +605,16 @@ export default function FishingApp(){
             {/* 의견 보내기 */}
             <a href="https://docs.google.com/forms/d/e/1FAIpQLSdTFFDbP8ea5PPispIY3bhboCjrlZifUfsRZRydx5EsKnx8aQ/viewform?usp=header" target="_blank" rel="noopener"
               style={{display:"block",textDecoration:"none",marginTop:4}}>
-              <div style={{background:"linear-gradient(135deg,#1a4d7a,#0d2b45)",borderRadius:16,padding:"16px 18px",border:`1px solid #2a5a8a`,display:"flex",alignItems:"center",gap:12}}>
+              <div style={{background:"linear-gradient(135deg,#3a90cf,#1f6fb2)",borderRadius:16,padding:"16px 18px",border:"none",display:"flex",alignItems:"center",gap:12,boxShadow:"0 3px 10px rgba(31,111,178,0.2)"}}>
                 <span style={{fontSize:28}}>💬</span>
                 <div style={{flex:1}}>
                   <div style={{fontSize:15,fontWeight:800,color:"#fff"}}>의견 · 개선 요청 보내기</div>
-                  <div style={{fontSize:12,color:C.lblue,marginTop:2}}>이런 기능 있으면 좋겠다 · 이 정보가 틀렸다 — 알려주세요 🎣</div>
+                  <div style={{fontSize:12,color:"rgba(255,255,255,0.9)",marginTop:2}}>이런 기능 있으면 좋겠다 · 이 정보가 틀렸다 — 알려주세요 🎣</div>
                 </div>
-                <span style={{fontSize:18,color:C.lblue}}>›</span>
+                <span style={{fontSize:18,color:"rgba(255,255,255,0.9)"}}>›</span>
               </div>
             </a>
-            <div style={{fontSize:11,color:"#5a7590",textAlign:"center",marginTop:8,lineHeight:1.6}}>
+            <div style={{fontSize:11,color:C.gray,textAlign:"center",marginTop:8,lineHeight:1.6}}>
               여러분의 의견이 '바다조황'을 완성합니다. 낚시꾼이 만드는 낚시 앱이에요.
             </div>
           </>
@@ -416,9 +657,9 @@ export default function FishingApp(){
                           const strong=ws>=8;
                           return(
                             <div key={i} style={{display:"grid",gridTemplateColumns:"58px 1fr 1fr 60px",gap:4,alignItems:"center",padding:"7px 0",borderBottom:`1px solid ${C.border}`}}>
-                              <span style={{fontSize:13,color:hh>=18||hh<6?C.gold:"#fff"}}>{String(hh).padStart(2,"0")}시</span>
+                              <span style={{fontSize:13,color:hh>=18||hh<6?C.gold:C.text}}>{String(hh).padStart(2,"0")}시</span>
                               <span style={{textAlign:"center",fontSize:14,fontWeight:700,color:C.blue}}>{windArrow(wd)} {windDir(wd)}</span>
-                              <span style={{textAlign:"center",fontSize:14,fontWeight:700,color:strong?"#e57373":"#fff"}}>{ws.toFixed(1)}</span>
+                              <span style={{textAlign:"center",fontSize:14,fontWeight:700,color:strong?"#e57373":C.text}}>{ws.toFixed(1)}</span>
                               <span style={{textAlign:"right",fontSize:13,color:wh>=1.5?"#e57373":C.blue}}>{wh!=null?`${wh.toFixed(1)}m`:"-"}</span>
                             </div>
                           );
@@ -438,7 +679,7 @@ export default function FishingApp(){
                             <div key={hi} style={{display:"grid",gridTemplateColumns:"58px 1fr 1fr 60px",gap:4,alignItems:"center",padding:"9px 0",borderBottom:`1px solid ${C.border}`}}>
                               <span style={{fontSize:13,color:C.lblue,fontWeight:700}}>{half}</span>
                               <span style={{textAlign:"center",fontSize:14,fontWeight:700,color:C.blue}}>{windArrow(wd)} {windDir(wd)}</span>
-                              <span style={{textAlign:"center",fontSize:14,fontWeight:700,color:strong?"#e57373":"#fff"}}>{ws.toFixed(1)}</span>
+                              <span style={{textAlign:"center",fontSize:14,fontWeight:700,color:strong?"#e57373":C.text}}>{ws.toFixed(1)}</span>
                               <span style={{textAlign:"right",fontSize:13,color:wh>=1.5?"#e57373":C.blue}}>{wh!=null?`${wh.toFixed(1)}m`:"-"}</span>
                             </div>
                           );
@@ -499,7 +740,7 @@ export default function FishingApp(){
                           const pop=H.precipitation_probability?.[i]??0;
                           return(
                             <div key={i} style={{display:"grid",gridTemplateColumns:"58px 44px 1fr 1fr 56px",gap:4,alignItems:"center",padding:"7px 0",borderBottom:`1px solid ${C.border}`}}>
-                              <span style={{fontSize:13,color:hh>=18||hh<6?C.gold:"#fff"}}>{String(hh).padStart(2,"0")}시</span>
+                              <span style={{fontSize:13,color:hh>=18||hh<6?C.gold:C.text}}>{String(hh).padStart(2,"0")}시</span>
                               <span style={{fontSize:20,textAlign:"center"}}>{em}</span>
                               <span style={{fontSize:12,color:C.gray}}>{txt}</span>
                               <span style={{fontSize:15,fontWeight:700,textAlign:"right"}}>{H.temperature_2m[i].toFixed(0)}°</span>
@@ -551,9 +792,30 @@ export default function FishingApp(){
                 <span style={{marginLeft:"auto",fontSize:12,color:C.gray}}>음력 {mt.lunarDay}일</span>
               </div>
               <div style={{marginBottom:14}}>{[1,2,3,4,5].map(n=><span key={n} style={{display:"inline-block",width:26,height:6,borderRadius:3,marginRight:4,background:n<=mt.level?C.blue:C.border}}/>)}</div>
+              {(()=>{
+                const fp=currentFlowPct(mt.level, waveH, cur?.wind_speed_10m);
+                const col=fp>=80?"#e57373":fp>=50?C.gold:fp>=25?C.lblue:C.gray;
+                const desc=fp>=80?"매우 강함 (주의)":fp>=50?"강함":fp>=25?"보통":fp>=10?"약함":"잔잔";
+                return(
+                  <div style={{background:C.card2,borderRadius:10,padding:"11px 13px",marginBottom:12}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <span style={{fontSize:13,color:C.gray}}>🌊 오늘 조류 세기</span>
+                      <span style={{fontSize:24,fontWeight:900,color:col,marginLeft:"auto"}}>{fp}%</span>
+                      <span style={{fontSize:12,color:col,fontWeight:700,width:72,textAlign:"right"}}>{desc}</span>
+                    </div>
+                    <div style={{marginTop:8,height:7,background:C.border,borderRadius:4,overflow:"hidden"}}>
+                      <div style={{width:`${fp}%`,height:"100%",background:col,borderRadius:4}}/>
+                    </div>
+                    <div style={{fontSize:10.5,color:C.gray,marginTop:6}}>물때({mt.strength}) + 파고 + 바람 종합 · 100%=가장 센 상태</div>
+                  </div>
+                );
+              })()}
               <TideGraph tides={tides} sun={sun}/>
             </Card>
             <Card title="📋 조석 시각표 (3일)">
+              <div style={{display:"flex",alignItems:"center",fontSize:10.5,color:C.gray,paddingBottom:6,marginBottom:2,borderBottom:`1px solid ${C.border}`,fontWeight:700}}>
+                <span style={{width:66}}>구분</span><span style={{flex:1}}>시각</span><span style={{width:60,textAlign:"right"}}>조위</span>
+              </div>
               {Array.from({length:3}).map((_,d)=>{
                 const day=new Date(today.getFullYear(),today.getMonth(),today.getDate()+d);
                 const dtides=getTides(day);
@@ -564,7 +826,7 @@ export default function FishingApp(){
                 return(
                   <div key={d} style={{marginBottom:d<2?14:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${C.border}`}}>
-                      <span style={{fontSize:13,fontWeight:800,color:d===0?C.gold:"#fff"}}>{label} {day.getMonth()+1}/{day.getDate()}({days[day.getDay()]})</span>
+                      <span style={{fontSize:13,fontWeight:800,color:d===0?C.gold:C.text}}>{label} {day.getMonth()+1}/{day.getDate()}({days[day.getDay()]})</span>
                       <span style={{fontSize:12,color:C.blue,fontWeight:700}}>{dmt.name}</span>
                       <span style={{fontSize:11,color:C.amber}}>{dmt.strength}</span>
                     </div>
@@ -572,9 +834,15 @@ export default function FishingApp(){
                       <div key={i} style={{display:"flex",alignItems:"center",padding:"8px 0",borderBottom:i<3?`1px solid rgba(30,58,82,0.5)`:"none"}}>
                         <span style={{fontSize:14,color:t.type==="만조"?C.blue:C.gray,fontWeight:700,width:66}}>{t.type==="만조"?"▲ 만조":"▼ 간조"}</span>
                         <span style={{fontSize:18,fontWeight:800,flex:1}}>{t.time}</span>
-                        <span style={{fontSize:13,color:C.gray}}>{t.level}cm</span>
+                        <span style={{fontSize:12,color:C.gray,width:60,textAlign:"right"}}>{t.level}cm</span>
                       </div>
                     ))}
+                    <div style={{marginTop:6,fontSize:12,color:C.lblue,display:"flex",alignItems:"center",gap:6}}>
+                      🌊 조류 세기 <b style={{color:tideOnlyPct(dmt.level)>=50?C.gold:C.lblue}}>
+                        {d===0?currentFlowPct(dmt.level,waveH,cur?.wind_speed_10m):tideOnlyPct(dmt.level)}%
+                      </b>
+                      <span style={{fontSize:11,color:C.gray}}>{d===0?"(오늘·파고/바람 반영)":"(물때 기준)"}</span>
+                    </div>
                     <div style={{marginTop:6,fontSize:12,color:C.gray,display:"flex",gap:16}}>
                       <span>🌅 일출 {dsun.sunrise}</span><span>🌇 일몰 {dsun.sunset}</span>
                     </div>
@@ -594,7 +862,7 @@ export default function FishingApp(){
                 return(
                   <div key={d} style={{padding:"10px 0",borderBottom:d<29?`1px solid ${C.border}`:"none"}}>
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-                      <span style={{fontSize:13,fontWeight:700,color:isToday?C.gold:"#fff",width:80}}>
+                      <span style={{fontSize:13,fontWeight:700,color:isToday?C.gold:C.text,width:80}}>
                         {isToday?"오늘 ":""}{day.getMonth()+1}/{day.getDate()}({days[day.getDay()]})
                       </span>
                       <span style={{fontSize:13,fontWeight:700,color:C.blue}}>{dmt.name}</span>
@@ -613,9 +881,9 @@ export default function FishingApp(){
                   </div>
                 );
               })}
-              <div style={{fontSize:11,color:"#5a7590",marginTop:10,lineHeight:1.5}}>▲ 만조 · ▼ 간조 · 물때는 계산값이라 날짜 무제한 조회 가능</div>
+              <div style={{fontSize:11,color:C.gray,marginTop:10,lineHeight:1.5}}>▲ 만조 · ▼ 간조 · 물때는 계산값이라 날짜 무제한 조회 가능</div>
             </Card>
-            <div style={{fontSize:11,color:"#5a7590",textAlign:"center",lineHeight:1.6}}>※ 조석 시각·조위는 근사 계산값 · 실제 앱은 국립해양조사원 관측소 정밀값 연동</div>
+            <div style={{fontSize:11,color:C.gray,textAlign:"center",lineHeight:1.6}}>🌊 조류 세기 = 물때+파고+바람 종합 물 상태 (0~100%) · 평상시 사리 70%, 잔잔하면 한 자릿수, 태풍급 100%<br/>※ 조석 시각·조위·조류세기는 근사 계산값 · 실제 앱은 국립해양조사원 관측소 정밀값 연동</div>
           </>
         )}
 
@@ -635,13 +903,13 @@ export default function FishingApp(){
                   <div style={{fontSize:11,color:C.gray}}>실제 수온</div>
                   <div style={{fontSize:32,fontWeight:800,color:C.blue}}>{seaTemp!=null?seaTemp.toFixed(1):"-"}°</div>
                 </div>
-                <div style={{flex:1,background:"linear-gradient(135deg,#1a3a52,#0f2438)",borderRadius:12,padding:"14px",border:"1px solid #2a5a8a"}}>
+                <div style={{flex:1,background:"linear-gradient(135deg,#eaf5fc,#d6ebf8)",borderRadius:12,padding:"14px",border:"1px solid "+C.border}}>
                   <div style={{fontSize:11,color:C.gold}}>🌬️ 체감수온</div>
                   <div style={{fontSize:32,fontWeight:800,color:C.gold}}>{feels!=null?feels.toFixed(1):"-"}°</div>
                   <div style={{fontSize:10,color:C.gray,marginTop:2}}>바람·파고·기온차 반영</div>
                 </div>
               </div>
-              <div style={{fontSize:11,color:"#5a7590",marginTop:10}}>낚시꾼이 실제로 느끼는 수온. 표시 수온과 체감이 다른 이유를 숫자로.</div>
+              <div style={{fontSize:11,color:C.gray,marginTop:10}}>낚시꾼이 실제로 느끼는 수온. 표시 수온과 체감이 다른 이유를 숫자로.</div>
             </Card>
 
             {/* 수심별 수온 (표층 vs 심층) */}
@@ -658,7 +926,7 @@ export default function FishingApp(){
                     : `수심 20m는 표층보다 ${(seaTemp-seaTemp20).toFixed(1)}° 낮아요.`}
                 </div>
               )}
-              <div style={{fontSize:10,color:"#5a7590",marginTop:8,lineHeight:1.5}}>
+              <div style={{fontSize:10,color:C.gray,marginTop:8,lineHeight:1.5}}>
                 ※ 심층 수온은 해양모델 <b>추정값</b>이라 실측과 차이 있을 수 있어요. 데이터 없는 지점은 '-'로 표시됩니다.
               </div>
             </Card>
@@ -728,7 +996,7 @@ export default function FishingApp(){
                   <span style={{fontSize:34}}>{f.emoji}</span>
                   <div><div style={{fontSize:22,fontWeight:800}}>{f.name}</div><div style={{fontSize:11,color:C.gray}}>{f.cat}</div></div>
                   <div style={{marginLeft:"auto",display:"flex",gap:6,flexWrap:"wrap",justifyContent:"flex-end"}}>
-                    <span style={{fontSize:12,fontWeight:700,padding:"4px 10px",borderRadius:8,background:inS?"#1f9d55":inAll?C.amber:"#3a3a3a",color:"#fff"}}>{inS?"피크 🎣":inAll?"시즌":"비시즌"}</span>
+                    <span style={{fontSize:12,fontWeight:700,padding:"4px 10px",borderRadius:8,background:inS?"#1f9d55":inAll?C.amber:"#9db3c4",color:"#fff"}}>{inS?"피크 🎣":inAll?"시즌":"비시즌"}</span>
                     {ts&&<span style={{fontSize:12,fontWeight:700,padding:"4px 10px",borderRadius:8,background:ts==="적정"?"#1f9d55":C.amber,color:"#fff"}}>수온 {ts}</span>}
                   </div>
                 </div>
@@ -824,14 +1092,14 @@ export default function FishingApp(){
                   {emoji:"🌡️",title:"실시간 수온",desc:"수산과학원 관측",url:"https://www.nifs.go.kr/risa/main.risa"},
                   {emoji:"⛅",title:"기상청 바다",desc:"해상 예보·특보",url:"https://www.weather.go.kr/w/ocean/marine/forecast.do"},
                 ].map((L,i)=>(
-                  <a key={i} href={L.url} target="_blank" rel="noopener" style={{display:"block",background:C.card2,borderRadius:12,padding:"14px 12px",textDecoration:"none",color:"#fff"}}>
+                  <a key={i} href={L.url} target="_blank" rel="noopener" style={{display:"block",background:C.card2,borderRadius:12,padding:"14px 12px",textDecoration:"none",color:C.text,border:`1px solid ${C.border}`}}>
                     <div style={{fontSize:24}}>{L.emoji}</div>
-                    <div style={{fontSize:14,fontWeight:700,marginTop:6}}>{L.title}</div>
+                    <div style={{fontSize:14,fontWeight:700,marginTop:6,color:C.blue}}>{L.title}</div>
                     <div style={{fontSize:11,color:C.gray,marginTop:2}}>{L.desc}</div>
                   </a>
                 ))}
               </div>
-              <div style={{fontSize:11,color:"#5a7590",marginTop:10}}>외부 사이트로 연결됩니다 · 정밀 수심(등수심선)은 전자해도에서 확대해 확인</div>
+              <div style={{fontSize:11,color:C.gray,marginTop:10}}>외부 사이트로 연결됩니다 · 정밀 수심(등수심선)은 전자해도에서 확대해 확인</div>
             </Card>
 
             {/* 대표 포인트 (향후 확장) */}
@@ -846,7 +1114,7 @@ export default function FishingApp(){
       </div>
 
       {/* 하단 탭바 (주요 4개 고정) */}
-      <div style={{position:"fixed",bottom:0,left:0,right:0,background:"#0d2135",borderTop:`1px solid ${C.border}`,display:"flex",maxWidth:480,margin:"0 auto"}}>
+      <div style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(255,255,255,0.97)",borderTop:`1px solid ${C.border}`,display:"flex",maxWidth:480,margin:"0 auto",boxShadow:"0 -2px 10px rgba(31,111,178,0.08)"}}>
         {[["forecast","🌊","예보"],["tide","🌙","물때"],["predict","🎯","낚시예측"],["fish","🐟","어종"]].map(([id,ic,label])=>(
           <button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:"10px 0 13px",background:"none",border:"none",cursor:"pointer",color:tab===id?C.blue:C.gray,borderTop:tab===id?`2px solid ${C.blue}`:"2px solid transparent"}}>
             <div style={{fontSize:19}}>{ic}</div><div style={{fontSize:11,fontWeight:700,marginTop:2}}>{label}</div>
@@ -859,21 +1127,21 @@ export default function FishingApp(){
 
 // ── 조각 컴포넌트 ──
 function Card({title,children}){return(
-  <div style={{background:C.card,borderRadius:16,padding:16,marginBottom:12,border:`1px solid ${C.border}`}}>
+  <div style={{background:C.card,borderRadius:16,padding:16,marginBottom:12,border:`1px solid ${C.border}`,boxShadow:"0 2px 8px rgba(31,111,178,0.06)"}}>
     {title&&<div style={{fontSize:13,color:C.lblue,fontWeight:700,marginBottom:12}}>{title}</div>}
     {children}
   </div>
 );}
 function Mini({icon,label,main,sub,gold}){return(
-  <div style={{background:C.card,borderRadius:14,padding:"13px 14px",border:`1px solid ${C.border}`}}>
+  <div style={{background:C.card,borderRadius:14,padding:"13px 14px",border:`1px solid ${C.border}`,boxShadow:"0 2px 8px rgba(31,111,178,0.06)"}}>
     <div style={{fontSize:11,color:C.gray}}>{icon} {label}</div>
-    <div style={{fontSize:24,fontWeight:800,color:gold?C.gold:"#fff",marginTop:4}}>{main}</div>
+    <div style={{fontSize:24,fontWeight:800,color:gold?C.gold:C.text,marginTop:4}}>{main}</div>
     {sub&&<div style={{fontSize:11,color:gold?C.gold:C.gray,marginTop:2}}>{sub}</div>}
   </div>
 );}
 function DepthTemp({label,temp,note,C}){
   // 수온에 따라 색: 따뜻할수록 붉게, 차가울수록 파랗게
-  const col=temp==null?"#5a7590":temp>=22?"#e57e73":temp>=17?"#e0a94a":temp>=12?"#4a9de0":"#5a8fd0";
+  const col=temp==null?"#9db3c4":temp>=22?"#d9554a":temp>=17?"#c78a1e":temp>=12?"#1f6fb2":"#3a7bc0";
   return(
     <div style={{flex:1,background:C.card2,borderRadius:12,padding:"12px 8px",textAlign:"center"}}>
       <div style={{fontSize:11,color:C.lblue,fontWeight:700}}>{label}</div>
@@ -886,7 +1154,7 @@ function Row({label,value,note,highlight}){return(
   <div style={{padding:"10px 0",borderBottom:`1px solid ${C.border}`}}>
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:12}}>
       <span style={{fontSize:13,color:C.lblue,fontWeight:700,flexShrink:0}}>{label}</span>
-      <span style={{fontSize:14,fontWeight:700,textAlign:"right",color:highlight?"#1fd579":"#fff"}}>{value}</span>
+      <span style={{fontSize:14,fontWeight:700,textAlign:"right",color:highlight?"#1f9d55":C.text}}>{value}</span>
     </div>
     {note&&<div style={{fontSize:11,color:C.gray,marginTop:4,textAlign:"right"}}>{note}</div>}
   </div>
@@ -926,7 +1194,7 @@ function TideGraph({tides,sun}){
     <svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",height:"auto",maxHeight:460}}>
       <defs>
         <linearGradient id="tideGradV" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#0a1929"/><stop offset="100%" stopColor="#4a9de0"/>
+          <stop offset="0%" stopColor="#d6ebf8"/><stop offset="100%" stopColor="#1f6fb2"/>
         </linearGradient>
       </defs>
 
@@ -934,21 +1202,21 @@ function TideGraph({tides,sun}){
       <rect x="0" y={yFor(sunriseH)} width={W} height={yFor(sunsetH)-yFor(sunriseH)} fill="#4a9de0" opacity="0.05"/>
 
       {/* 세로 시간축 */}
-      <line x1={axisX} y1={padT} x2={axisX} y2={H-padB} stroke="#1e3a52" strokeWidth="1"/>
+      <line x1={axisX} y1={padT} x2={axisX} y2={H-padB} stroke="#c5dced" strokeWidth="1"/>
       {ticks.map(h=>(
         <g key={h}>
-          <line x1={axisX-4} y1={yFor(h)} x2={axisX+4} y2={yFor(h)} stroke="#3a5a7a" strokeWidth="1"/>
-          <text x={axisX-10} y={yFor(h)+3} fill="#8aa5bd" fontSize="10" textAnchor="end">{h}</text>
+          <line x1={axisX-4} y1={yFor(h)} x2={axisX+4} y2={yFor(h)} stroke="#c5dced" strokeWidth="1"/>
+          <text x={axisX-10} y={yFor(h)+3} fill="#5f7c92" fontSize="10" textAnchor="end">{h}</text>
         </g>
       ))}
 
       {/* 조석 곡선 */}
-      <path d={path} fill="none" stroke="#4a9de0" strokeWidth="2.5"/>
+      <path d={path} fill="none" stroke="#1f6fb2" strokeWidth="2.5"/>
 
       {/* 일출/일몰 마커 */}
       <g>
-        <text x={W-8} y={yFor(sunriseH)+4} fill="#ffd27a" fontSize="11" textAnchor="end">🌅 {sun.sunrise}</text>
-        <text x={W-8} y={yFor(sunsetH)+4} fill="#ff9d6a" fontSize="11" textAnchor="end">🌇 {sun.sunset}</text>
+        <text x={W-8} y={yFor(sunriseH)+4} fill="#c07a00" fontSize="11" textAnchor="end">🌅 {sun.sunrise}</text>
+        <text x={W-8} y={yFor(sunsetH)+4} fill="#d9662a" fontSize="11" textAnchor="end">🌇 {sun.sunset}</text>
       </g>
 
       {/* 만조/간조 박스 (참고 앱처럼 좌우로) */}
@@ -959,17 +1227,17 @@ function TideGraph({tides,sun}){
         const bx=Math.max(2,Math.min(W-boxW-2,boxX));
         return(
           <g key={i}>
-            <circle cx={p.x} cy={p.y} r="5" fill={isHigh?"#e57373":"#4a9de0"} stroke="#0a1929" strokeWidth="1.5"/>
-            <rect x={bx} y={p.y-boxH/2} width={boxW} height={boxH} rx="6" fill={isHigh?"#3a1f1f":"#0f2438"} stroke={isHigh?"#e57373":"#4a9de0"} strokeWidth="1"/>
-            <text x={bx+boxW/2} y={p.y-3} fill={isHigh?"#e57373":"#7eb3e0"} fontSize="10" textAnchor="middle" fontWeight="700">{isHigh?"▲만조":"▼간조"} {p.time}</text>
-            <text x={bx+boxW/2} y={p.y+11} fill="#8aa5bd" fontSize="9" textAnchor="middle">{p.level}cm</text>
+            <circle cx={p.x} cy={p.y} r="5" fill={isHigh?"#e05555":"#1f6fb2"} stroke="#ffffff" strokeWidth="1.5"/>
+            <rect x={bx} y={p.y-boxH/2} width={boxW} height={boxH} rx="6" fill={isHigh?"#fdeaea":"#eaf5fc"} stroke={isHigh?"#e05555":"#1f6fb2"} strokeWidth="1"/>
+            <text x={bx+boxW/2} y={p.y-3} fill={isHigh?"#c0392b":"#1f6fb2"} fontSize="10" textAnchor="middle" fontWeight="700">{isHigh?"▲만조":"▼간조"} {p.time}</text>
+            <text x={bx+boxW/2} y={p.y+11} fill="#5f7c92" fontSize="9" textAnchor="middle">{p.level}cm</text>
           </g>
         );
       })}
 
       {/* 상단/하단 라벨 */}
-      <text x={axisX} y={padT-6} fill="#5a7590" fontSize="9" textAnchor="middle">0시</text>
-      <text x={axisX} y={H-padB+14} fill="#5a7590" fontSize="9" textAnchor="middle">24시</text>
+      <text x={axisX} y={padT-6} fill="#5f7c92" fontSize="9" textAnchor="middle">0시</text>
+      <text x={axisX} y={H-padB+14} fill="#5f7c92" fontSize="9" textAnchor="middle">24시</text>
     </svg>
   );
 }
