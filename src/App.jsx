@@ -1,0 +1,975 @@
+import { useState, useEffect } from "react";
+
+// ══════════════════════════════════════════════════════════
+//  지역
+// ══════════════════════════════════════════════════════════
+const REGIONS = [
+  { id:"incheon", name:"인천", sea:"서해", lat:37.451, lon:126.592 },
+  { id:"taean", name:"태안(안흥)", sea:"서해", lat:36.674, lon:126.129 },
+  { id:"gunsan", name:"군산", sea:"서해", lat:35.976, lon:126.563 },
+  { id:"mokpo", name:"목포", sea:"서해", lat:34.779, lon:126.375 },
+  { id:"wando", name:"완도", sea:"남해", lat:34.316, lon:126.759 },
+  { id:"yeosu", name:"여수", sea:"남해", lat:34.747, lon:127.766 },
+  { id:"samcheonpo", name:"삼천포", sea:"남해", lat:34.925, lon:128.064 },
+  { id:"tongyeong", name:"통영", sea:"남해", lat:34.827, lon:128.434 },
+  { id:"busan", name:"부산", sea:"남해", lat:35.096, lon:129.035 },
+  { id:"pohang", name:"포항", sea:"동해", lat:36.051, lon:129.376 },
+  { id:"gangneung", name:"강릉(주문진)", sea:"동해", lat:37.891, lon:128.831 },
+  { id:"sokcho", name:"속초", sea:"동해", lat:38.207, lon:128.594 },
+  { id:"jeju", name:"제주", sea:"제주", lat:33.527, lon:126.543 },
+];
+
+// ══════════════════════════════════════════════════════════
+//  어종 데이터 (웹 검색 기반 실제값) · peak=피크월, season=전체시즌
+//  category: 어류 / 두족류(오징어문어) / 기타
+// ══════════════════════════════════════════════════════════
+const FISH = [
+  { id:"galchi", name:"갈치", emoji:"🐟", cat:"어류", tempMin:20, tempMax:27, tempNote:"20℃↑ 먹이활동 활발 (아열대성)",
+    tideBest:"3물~7물", tideNote:"사리엔 조류 빨라 불리 · 조금엔 입질 약함", season:"7~12월", peak:"9~11월", seasonPeak:[9,10,11], seasonAll:[7,8,9,10,11,12],
+    ban:"7월 중 (근해채낚기 등, 매년 고시)", minSize:"항문장 18cm", banNote:"금어기는 어업별로 다름 · 낚시객은 체장 준수", depth:"표층~중층 (선상 50~100m)", best:"밤 · 바람 잦아든 초저녁",
+    tips:["추광성 — 집어등/케미라이트에 잘 모임","초저녁 바람 터지면 조과 급락","11~12월 연안 굵은 씨알 마릿수","찬바람에 연안서 빠지면 시즌 종료"] },
+  { id:"gwangeo", name:"광어(넙치)", emoji:"🐟", cat:"어류", tempMin:10, tempMax:25, tempNote:"15~22℃ 활동성 최고 · 산란기 2~6월",
+    tideBest:"3~7물 (바닥 찍기 편함)", tideNote:"모래·펄 바닥에 붙어 생활", season:"4~11월", peak:"5~6월·10월", seasonPeak:[5,6,10], seasonAll:[4,5,6,7,8,9,10,11],
+    ban:"없음 (금지체장만)", minSize:"35cm", banNote:"넙치 35cm 미만 방생", depth:"10~200m 모래·혼무니 바닥", best:"서해 방조제·선상 다운샷",
+    tips:["다운샷 웜·생새우로 바닥 공략","치어방류로 자원 풍부해져 전문 대상어화","모래와 암반 섞인 지형 선호","서해 루어·선상 외줄 모두 가능"] },
+  { id:"ureok", name:"우럭(조피볼락)", emoji:"🐟", cat:"어류", tempMin:8, tempMax:22, tempNote:"8~22℃ (냉수에 강함)",
+    tideBest:"3~7물", tideNote:"먼바다 선상은 물때 영향 적음", season:"연중 (4~6월 대물)", peak:"4~6월", seasonPeak:[4,5,6], seasonAll:[1,2,3,4,5,6,7,8,9,10,11,12],
+    ban:"없음", minSize:"23cm 권장", banNote:"법정 금지체장은 없으나 자원보호 위해 23cm↓ 방생", depth:"암초·인공어초 바닥", best:"서해 선상 외줄낚시",
+    tips:["서해 대표 입문 어종","23cm 미만은 방생 (자원보호)","볼락·열기와 함께 낚임","산란 전후 봄철이 굵은 씨알"] },
+  { id:"gamseongdom", name:"감성돔", emoji:"🐠", cat:"어류", tempMin:15, tempMax:22, tempNote:"15~22℃ 활동성 최고",
+    tideBest:"중간 물때 (사리 정중앙 피함)", tideNote:"영등철엔 느린 조류·물돌이 때 유리", season:"3~6월·10~11월", peak:"4~5월·10~11월", seasonPeak:[4,5,10,11], seasonAll:[3,4,5,6,10,11],
+    ban:"5/1~5/31", minSize:"25cm", banNote:"산란기 보호 · 25cm 미만 방생", depth:"7~8m 여밭·수중여", best:"해질녘 전후 30분 · 갯바위",
+    tips:["'바다의 왕자' — 수심 깊은 여밭 선호","미끼 크릴/게살","경사 완만·바닥 밋밋한 곳 잘 붙음","영등철(2~3월) 대물 노림"] },
+  { id:"chamdom", name:"참돔", emoji:"🐠", cat:"어류", tempMin:14, tempMax:24, tempNote:"봄·가을 연안 회유",
+    tideBest:"3~7물 (조류 있는 날)", tideNote:"타이라바·선상 지깅", season:"4~5월·10~11월", peak:"4~5월·10~11월", seasonPeak:[4,5,10,11], seasonAll:[4,5,6,9,10,11],
+    ban:"없음", minSize:"24cm", banNote:"24cm 미만 방생", depth:"20~150m 중층~저층", best:"선상 타이라바 · 물돌이",
+    tips:["봄 산란기 대물 '벚꽃돔'","타이라바·인치쿠로 공략","조류 흐를 때 입질 활발"] },
+  { id:"nongeo", name:"농어", emoji:"🐟", cat:"어류", tempMin:14, tempMax:24, tempNote:"루어 대표 어종",
+    tideBest:"들물~날물 교차 (물돌이)", tideNote:"조석차 클수록 포인트 중요", season:"5~10월", peak:"5~7월", seasonPeak:[5,6,7], seasonAll:[5,6,7,8,9,10],
+    ban:"없음", minSize:"없음", banNote:"법정 규제 없음 (자원보호 배려)", depth:"수문·방파제·갯바위", best:"새벽·해질녘 · 루어",
+    tips:["'바다의 육상' — 강한 파이팅","하드베이트·미노우 캐스팅","수문·기수역 포인트","제주는 연중 가능"] },
+  { id:"doldom", name:"돌돔", emoji:"🐠", cat:"어류", tempMin:16, tempMax:26, tempNote:"여름 고수온기 피크",
+    tideBest:"3~5물·11~13물 (사리 피함)", tideNote:"물돌이 때 입질 잦음 · 탁한 물 피함", season:"6월중순~10월말", peak:"7~9월", seasonPeak:[7,8,9], seasonAll:[6,7,8,9,10],
+    ban:"없음", minSize:"24cm", banNote:"24cm 미만 방생 권장", depth:"암초대 10~15m", best:"아침~오전 (해 뜬 후 2시간)",
+    tips:["주행성 — 아침이 피크","성게·소라·게 미끼","얕은 여밭은 파도 있는 날 유리","'갯바위의 황제' 강한 손맛"] },
+  { id:"bangeo", name:"방어", emoji:"🐟", cat:"어류", tempMin:12, tempMax:22, tempNote:"겨울철 최고 횟감",
+    tideBest:"본류대 조류 흐를 때", tideNote:"베이트 무리 추적", season:"9~1월", peak:"11~1월", seasonPeak:[11,12,1], seasonAll:[9,10,11,12,1],
+    ban:"없음", minSize:"없음 (대방어 보호 권장)", banNote:"소형 방어 방생 권장", depth:"20~150m 중층~저층", best:"지깅·캐스팅 · 남해/제주/동해",
+    tips:["10kg↑ 대물은 '대방어'","메탈지그 지깅이 기본","겨울철 기름진 육질 최고","강력한 파이팅·지구력"] },
+  { id:"samchi", name:"삼치", emoji:"🐟", cat:"어류", tempMin:15, tempMax:24, tempNote:"회유성 · 빠른 유영",
+    tideBest:"조류 흐르는 날", tideNote:"표층 베이트 추적", season:"9~11월·5월", peak:"9~11월", seasonPeak:[9,10,11], seasonAll:[5,9,10,11],
+    ban:"5월 (신설, 매년 고시)", minSize:"항문장 21cm", banNote:"산란기 보호", depth:"표층~중층", best:"메탈 캐스팅 · 동해/남해",
+    tips:["이빨 날카로워 와이어 리더 필수","은빛 메탈지그 빠른 릴링","가을 기름 오른 삼치 별미"] },
+  { id:"godeungeo", name:"고등어", emoji:"🐟", cat:"어류", tempMin:14, tempMax:22, tempNote:"14~22℃ · 일출·일몰 전후 공격성↑",
+    tideBest:"조류 있는 물때", tideNote:"표층 카고·사비키", season:"6~11월", peak:"8~11월", seasonPeak:[8,9,10,11], seasonAll:[6,7,8,9,10,11],
+    ban:"4~6월 중 한 달 (매년 고시)", minSize:"21cm", banNote:"매년 해수부 고시로 기간 지정", depth:"표층~중층", best:"일출·일몰 전후 · 방파제",
+    tips:["은빛 반사 미끼(스푼·파리)에 폭발","사비키 채비로 마릿수","가을 기름 오른 고등어 최상"] },
+  { id:"bolrak", name:"볼락", emoji:"🐟", cat:"어류", tempMin:8, tempMax:18, tempNote:"찬물 좋아하는 겨울 대표어",
+    tideBest:"1~4물·8~10물 (느린 조류)", tideNote:"야간에 활성↑", season:"11~4월", peak:"12~3월", seasonPeak:[12,1,2,3], seasonAll:[11,12,1,2,3,4],
+    ban:"없음", minSize:"15cm", banNote:"조피볼락 등 볼락류 15cm 미만 방생", depth:"암초·테트라포드 사이", best:"밤 · 남해 갯바위/방파제",
+    tips:["경상도 '뽈락' · 겨울 대표 손맛","웜·미끼 야간 라이트게임","암초 틈에 은신 — 정밀 공략","잡식성 — 새우·물고기 다 먹음"] },
+  { id:"muneo", name:"문어", emoji:"🐙", cat:"두족류", tempMin:12, tempMax:22, tempNote:"15~22℃ 활동성 최고",
+    tideBest:"조금~중물 (약한 조류)", tideNote:"물 맑고 조류 세지 않을 때", season:"7~9월", peak:"7~8월", seasonPeak:[7,8], seasonAll:[7,8,9],
+    ban:"시·도 별도 지정", minSize:"금지체중 신설", banNote:"지역별 금어기 상이 · 관할 고시 확인", depth:"10~100m 바닥권", best:"물색 맑은 낮 · 바닥 공략",
+    tips:["대문어는 동해·남해 깊은 여밭","에기/문어지그로 바닥 탐색","격투력 강해 채비 튼튼하게"] },
+  { id:"gapojingeo", name:"갑오징어", emoji:"🦑", cat:"두족류", tempMin:12, tempMax:24, tempNote:"12~24℃",
+    tideBest:"무시~3물 (약한 물때)", tideNote:"바닥 서식 — 조류 약해야 채비 안착", season:"봄3~5월·가을9~11월", peak:"4~5월·10~11월", seasonPeak:[4,5,10,11], seasonAll:[3,4,5,9,10,11],
+    ban:"없음", minSize:"없음", banNote:"자원보호 위해 소형 방생 권장", depth:"5~50m (바닥 20~50cm)", best:"에깅 · 물흐름 느린 날",
+    tips:["시력 좋아 에기 색상에 민감","서해 오천·군산, 남해 여수·통영·거제","고패질로 천천히 작은 폭 유인","봄 대물·가을 마릿수 두 시즌"] },
+  { id:"jukkumi", name:"주꾸미", emoji:"🐙", cat:"두족류", tempMin:15, tempMax:25, tempNote:"가을철 연안 수온대",
+    tideBest:"2물~5물", tideNote:"조금물때가 사리보다 유리", season:"8~11월", peak:"9~10월", seasonPeak:[9,10], seasonAll:[8,9,10,11],
+    ban:"5/11~8/31", minSize:"없음", banNote:"산란·성장기 4개월 포획 금지", depth:"얕은 바닥권", best:"가을 서해 선상 · 새벽 출항",
+    tips:["묵직해지면 한 템포 늦춰 챔질","천수만처럼 개체 많으면 물때 무관","바닥까지 에기 내려 고패질","금어기(5.11~8.31) 확인"] },
+  { id:"munui", name:"무늬오징어", emoji:"🦑", cat:"두족류", tempMin:18, tempMax:28, tempNote:"18~28℃",
+    tideBest:"조류 완만한 물때", tideNote:"바람·탁한 물·비 직후·민물 유입 피함", season:"봄4~6월·가을9~11월", peak:"5~6월·10월", seasonPeak:[5,6,10], seasonAll:[4,5,6,9,10,11],
+    ban:"없음", minSize:"없음", banNote:"자원보호 위해 소형 방생 권장", depth:"5~50m", best:"제주 에깅 · 야간낚시",
+    tips:["제주 인기 에깅, 킬로급 손맛","서귀포 남원 연중 가능(16℃↑)","먹물 묻은 에기는 교체","봄 산란기 대물·가을 마릿수"] },
+  { id:"hanchi", name:"한치", emoji:"🦑", cat:"두족류", tempMin:20, tempMax:28, tempNote:"여름 고수온기",
+    tideBest:"조류 완만한 밤", tideNote:"집어등에 모임", season:"6~8월", peak:"6~8월", seasonPeak:[6,7,8], seasonAll:[6,7,8],
+    ban:"없음", minSize:"없음", banNote:"자원보호 위해 소형 방생 권장", depth:"표층~중층", best:"밤 선상 · 남해/제주 집어등",
+    tips:["여름밤 선상 대표 어종","집어등에 베이트 모아 공략","막대찌·수중집어등 병행","제주·남해 여름 별미"] },
+  { id:"salojingeo", name:"살오징어", emoji:"🦑", cat:"두족류", tempMin:12, tempMax:22, tempNote:"동해 대표 · 최근 서해도 출현",
+    tideBest:"조류 완만한 밤", tideNote:"집어등 채비", season:"6~12월", peak:"9~10월", seasonPeak:[9,10], seasonAll:[6,7,8,9,10,11,12],
+    ban:"4/1~5/31 (연안, 매년 고시)", minSize:"외투장 15cm", banNote:"어린 오징어 보호 강화", depth:"표층~중층", best:"밤 선상 · 동해/서해 집어등",
+    tips:["초보도 하루 50수 거뜬","묶음바늘(이카바늘) 채비","수온 상승으로 서해 어청도도 대풍","동해가 본거지지만 광역 확산"] },
+];
+
+const CATS=["전체","어류","두족류"];
+
+// 현재 날짜가 금어기 기간에 속하는지 (MM/DD 범위 파싱)
+function isInBanPeriod(banStr, date){
+  if(!banStr) return false;
+  // "5/1~5/31", "5/11~8/31", "4/1~5/31 (연안, 매년 고시)" 등에서 날짜 추출
+  const m=banStr.match(/(\d{1,2})\/(\d{1,2})\s*~\s*(\d{1,2})\/(\d{1,2})/);
+  if(!m) return false;
+  const [_,m1,d1,m2,d2]=m.map(Number);
+  const y=date.getFullYear();
+  const start=new Date(y,m1-1,d1), end=new Date(y,m2-1,d2);
+  const cur=new Date(y,date.getMonth(),date.getDate());
+  if(start<=end) return cur>=start && cur<=end;
+  return cur>=start || cur<=end; // 연말~연초 걸침
+}
+
+// ══════════════════════════════════════════════════════════
+//  물때 · 조석 계산
+// ══════════════════════════════════════════════════════════
+const MULTTAE = ["일곱물","여덟물","아홉물","열물","열한물","열두물","열셋물","조금","무시","한물","두물","세물","네물","다섯물","여섯물"];
+function lunarAge(d){ const NM=Date.UTC(2000,0,6,18,14),S=29.530588853; const x=(d.getTime()-NM)/86400000; return ((x%S)+S)%S; }
+function getMulttae(d){
+  const a=lunarAge(d); let ld=Math.floor(a)+1; if(ld>30)ld=30;
+  const idx=ld<=15?(ld-1)%15:(ld-16)%15;
+  const dist=Math.min(Math.abs(a-0),Math.abs(a-14.77),Math.abs(a-29.53));
+  let strength,level;
+  if(dist<2){strength="사리";level=5;}else if(dist<4){strength="중사리";level=4;}
+  else if(dist<6){strength="중물";level=3;}else if(dist<8){strength="조금물";level=2;}else{strength="조금";level=1;}
+  return { name:MULTTAE[idx], strength, level, lunarDay:ld };
+}
+// 하루 조석 4회 (시각 + 조위 근사 cm)
+function getTides(d){
+  const a=lunarAge(d); const baseHigh=(a*0.8067)%12.42;
+  const amp = 150 + 150*Math.abs(Math.cos(a/29.53*Math.PI*2)); // 사리 크고 조금 작게
+  const out=[]; let t=baseHigh; const types=["만조","간조","만조","간조"];
+  for(let i=0;i<4;i++){
+    const hh=Math.floor(t)%24, mm=Math.floor((t%1)*60);
+    const isHigh=types[i]==="만조";
+    const lvl = isHigh ? Math.round(300+amp) : Math.round(150-amp*0.6);
+    out.push({ type:types[i], time:`${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}`, level:Math.max(0,lvl), hour:hh+mm/60 });
+    t+=6.21;
+  }
+  return out.sort((x,y)=>x.hour-y.hour);
+}
+// 일출/일몰 (간이)
+function sunTimes(d,lat){
+  const N=Math.floor((d-new Date(d.getFullYear(),0,0))/86400000);
+  const decl=-23.45*Math.cos((360/365)*(N+10)*Math.PI/180);
+  const latR=lat*Math.PI/180, decR=decl*Math.PI/180;
+  const cosH=-Math.tan(latR)*Math.tan(decR);
+  const H=Math.acos(Math.max(-1,Math.min(1,cosH)))*180/Math.PI/15;
+  const noon=12.5;
+  const fmt=h=>`${String(Math.floor(h)%24).padStart(2,"0")}:${String(Math.floor((h%1)*60)).padStart(2,"0")}`;
+  return { sunrise:fmt(noon-H), sunset:fmt(noon+H) };
+}
+
+// ══════════════════════════════════════════════════════════
+//  체감수온
+// ══════════════════════════════════════════════════════════
+function feelsSea(sea,air,wind,wave){
+  if(sea==null)return null; let f=sea;
+  f-=wind*0.35; if(air!=null&&air<sea)f-=(sea-air)*0.15; if(wave!=null)f-=wave*1.2;
+  return f;
+}
+
+// ══════════════════════════════════════════════════════════
+//  API
+// ══════════════════════════════════════════════════════════
+async function fetchAll(lat,lon){
+  const wx=fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`+
+    `&current=temperature_2m,apparent_temperature,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code,relative_humidity_2m,precipitation`+
+    `&hourly=temperature_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation_probability`+
+    `&daily=temperature_2m_max,temperature_2m_min,weather_code,wind_speed_10m_max,wind_direction_10m_dominant,precipitation_probability_max`+
+    `&timezone=Asia%2FSeoul&wind_speed_unit=ms&forecast_days=7`).then(r=>r.json());
+  const mar=fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}`+
+    `&current=sea_surface_temperature,wave_height,wave_period,wave_direction,ocean_temperature_0m,ocean_temperature_20m,ocean_temperature_50m`+
+    `&hourly=wave_height,wave_period,wave_direction&timezone=Asia%2FSeoul&forecast_days=7`).then(r=>r.json()).catch(()=>null);
+  const [w,m]=await Promise.all([wx,mar]); return {w,m};
+}
+
+// 미리보기/오프라인용 샘플 데이터 (실제 앱에선 위 fetchAll이 진짜 데이터를 채움)
+function sampleData(){
+  const now=new Date();
+  const midnight=new Date(now.getFullYear(),now.getMonth(),now.getDate()); // 오늘 0시
+  const hourly={time:[],temperature_2m:[],weather_code:[],wind_speed_10m:[],wind_direction_10m:[],wind_gusts_10m:[],precipitation_probability:[]};
+  const wave=[];
+  for(let i=0;i<168;i++){ // 7일 × 24시간
+    const t=new Date(midnight.getTime()+i*3600000);
+    const hh=t.getHours();
+    hourly.time.push(t.toISOString());
+    hourly.temperature_2m.push(26+4*Math.sin((hh-9)/24*2*Math.PI)+Math.random());
+    hourly.weather_code.push([0,1,2,2,3,80][Math.floor(Math.random()*6)]);
+    hourly.wind_speed_10m.push(2+3*Math.abs(Math.sin(i/6))+Math.random());
+    hourly.wind_direction_10m.push((180+i*15)%360);
+    hourly.wind_gusts_10m.push(4+4*Math.abs(Math.sin(i/6))+Math.random());
+    hourly.precipitation_probability.push(Math.floor(Math.random()*40));
+    wave.push(0.4+0.5*Math.abs(Math.sin(i/8)));
+  }
+  const daily={time:[],temperature_2m_max:[],temperature_2m_min:[],weather_code:[],wind_speed_10m_max:[],wind_direction_10m_dominant:[],precipitation_probability_max:[]};
+  for(let i=0;i<7;i++){
+    const t=new Date(midnight.getTime()+i*86400000);
+    daily.time.push(t.toISOString().slice(0,10));
+    daily.temperature_2m_max.push(29+Math.random()*3);
+    daily.temperature_2m_min.push(22+Math.random()*2);
+    daily.weather_code.push([0,1,2,3,80,1,2][i%7]);
+    daily.wind_speed_10m_max.push(4+Math.random()*4);
+    daily.wind_direction_10m_dominant.push((200+i*30)%360);
+    daily.precipitation_probability_max.push(Math.floor(Math.random()*60));
+  }
+  return {
+    _sample:true,
+    w:{ current:{temperature_2m:28.5,apparent_temperature:31,wind_speed_10m:2.8,wind_direction_10m:200,wind_gusts_10m:5.2,weather_code:2,relative_humidity_2m:54,precipitation:0}, hourly, daily },
+    m:{ current:{sea_surface_temperature:24.3,wave_height:0.5,wave_period:4.2,wave_direction:190,ocean_temperature_0m:24.3,ocean_temperature_20m:19.8,ocean_temperature_50m:15.2}, hourly:{wave_height:wave,wave_period:wave.map(()=>4),wave_direction:wave.map(()=>190)} },
+  };
+}
+const WMO={0:["맑음","☀️"],1:["대체로 맑음","🌤️"],2:["구름 조금","⛅"],3:["흐림","☁️"],45:["안개","🌫️"],48:["짙은 안개","🌫️"],51:["약한 이슬비","🌦️"],53:["이슬비","🌦️"],55:["강한 이슬비","🌧️"],61:["약한 비","🌧️"],63:["비","🌧️"],65:["강한 비","🌧️"],71:["약한 눈","🌨️"],73:["눈","🌨️"],75:["강한 눈","❄️"],80:["소나기","🌦️"],81:["소나기","🌧️"],82:["강한 소나기","⛈️"],95:["뇌우","⛈️"],96:["우박 뇌우","⛈️"],99:["강한 뇌우","⛈️"]};
+function windDir(deg){return ["북","북동","동","남동","남","남서","서","북서"][Math.round(deg/45)%8];}
+function windArrow(deg){return ["↓","↙","←","↖","↑","↗","→","↘"][Math.round(deg/45)%8];} // 바람이 불어가는 방향
+function fishingScore(level,wind,wave){let s=0;if(level===3||level===4)s+=2;else if(level===5||level===2)s+=1;if(wind<4)s+=2;else if(wind<7)s+=1;else if(wind>=10)s-=1;if(wave!=null){if(wave<0.5)s+=1;else if(wave>=1.5)s-=1;}if(s>=4)return{label:"출조 최적",color:"#1f9d55",emoji:"🎣"};if(s>=2)return{label:"무난",color:"#c98a00",emoji:"🙂"};return{label:"신중",color:"#c0392b",emoji:"⚠️"};}
+
+const C={bg:"#0a1929",card:"#0f2438",card2:"#0a1e33",border:"#1e3a52",blue:"#4a9de0",lblue:"#7eb3e0",gray:"#8aa5bd",amber:"#c98a00",gold:"#ffd27a"};
+
+// ══════════════════════════════════════════════════════════
+//  메인
+// ══════════════════════════════════════════════════════════
+const TABS=[
+  ["forecast","🌊","바다예보"],["wind","💨","바람·파고"],["weather","⛅","날씨"],
+  ["tide","🌙","물때"],["predict","🎯","낚시예측"],["fish","🐟","어종별"],["point","📍","포인트"],
+];
+
+export default function FishingApp(){
+  const [tab,setTab]=useState("forecast");
+  const [region,setRegion]=useState(REGIONS[6]);
+  const [data,setData]=useState(null);
+  const [loading,setLoading]=useState(true);
+  const [selFish,setSelFish]=useState(FISH[0]);
+  const [selCat,setSelCat]=useState("전체");
+  const [isSample,setIsSample]=useState(false);
+  const today=new Date();
+  const month=today.getMonth()+1;
+
+  useEffect(()=>{let alive=true;setLoading(true);setIsSample(false);
+    fetchAll(region.lat,region.lon)
+      .then(res=>{if(alive){
+        if(!res||!res.w||!res.w.current){
+          // 실제 데이터 실패 → 샘플로 대체 (미리보기에서도 모든 탭 확인 가능)
+          setData(sampleData());setIsSample(true);
+        }else{ setData(res); }
+        setLoading(false);
+      }})
+      .catch(()=>{if(alive){setData(sampleData());setIsSample(true);setLoading(false);}});
+    return()=>{alive=false;};
+  },[region]);
+
+  const mt=getMulttae(today);
+  const tides=getTides(today);
+  const sun=sunTimes(today,region.lat);
+  const cur=data?.w?.current;
+  const seaTemp=data?.m?.current?.sea_surface_temperature;
+  const seaTemp20=data?.m?.current?.ocean_temperature_20m;
+  const seaTemp50=data?.m?.current?.ocean_temperature_50m;
+  const waveH=data?.m?.current?.wave_height;
+  const wavePeriod=data?.m?.current?.wave_period;
+  const [wxText,wxEmoji]=WMO[cur?.weather_code??0]||["-","🌡️"];
+  const feels=cur?feelsSea(seaTemp,cur.temperature_2m,cur.wind_speed_10m,waveH):null;
+  const score=cur?fishingScore(mt.level,cur.wind_speed_10m,waveH):null;
+  const dateStr=`${today.getMonth()+1}월 ${today.getDate()}일 (${["일","월","화","수","목","금","토"][today.getDay()]})`;
+  const fishInSeason=f=>f.seasonPeak.includes(month);
+
+  return(
+    <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'Pretendard',-apple-system,sans-serif",color:"#e8eef4",paddingBottom:72}}>
+      <style>{`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');*{box-sizing:border-box;margin:0}::-webkit-scrollbar{display:none}`}</style>
+
+      {/* 헤더 */}
+      <div style={{background:"linear-gradient(135deg,#0d2b45,#1a4d7a)",padding:"14px 16px 14px",borderBottom:`1px solid ${C.border}`,position:"sticky",top:0,zIndex:10}}>
+        {/* 앱 로고 */}
+        <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:12}}>
+          <span style={{fontSize:22}}>🌊</span>
+          <span style={{fontSize:20,fontWeight:900,letterSpacing:-0.5,color:"#fff"}}>바다조황</span>
+          <span style={{fontSize:11,color:C.lblue,fontWeight:600,marginTop:4}}>물때·수온·날씨·어종</span>
+        </div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <select value={region.id} onChange={e=>setRegion(REGIONS.find(r=>r.id===e.target.value))}
+            style={{padding:"8px 12px",fontSize:17,fontWeight:800,borderRadius:10,border:`1px solid #2a5a8a`,background:C.card2,color:"#fff",appearance:"none"}}>
+            {REGIONS.map(r=><option key={r.id} value={r.id}>📍 {r.name} · {r.sea}</option>)}
+          </select>
+          <div style={{textAlign:"right",fontSize:11,color:C.gray}}>{dateStr}<br/>음력 {mt.lunarDay}일 · {mt.name}</div>
+        </div>
+        {/* 탭 스크롤 */}
+        <div style={{display:"flex",gap:6,overflowX:"auto",marginTop:12}}>
+          {TABS.map(([id,ic,label])=>(
+            <button key={id} onClick={()=>setTab(id)} style={{flexShrink:0,padding:"7px 12px",borderRadius:18,border:"none",
+              background:tab===id?C.blue:"rgba(255,255,255,0.08)",color:tab===id?"#fff":C.lblue,fontSize:13,fontWeight:700,cursor:"pointer"}}>
+              {ic} {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{maxWidth:480,margin:"0 auto",padding:"14px 14px"}}>
+        {loading && <div style={{textAlign:"center",color:C.gray,padding:"40px 0"}}>바다 데이터 불러오는 중…</div>}
+        {!loading && isSample && (
+          <div style={{background:"rgba(201,138,0,0.15)",border:`1px solid ${C.amber}`,borderRadius:12,padding:"10px 14px",marginBottom:12,fontSize:12,color:C.gold,lineHeight:1.5}}>
+            📌 미리보기 모드 — 지금은 <b>예시 데이터</b>로 화면을 보여드려요. 실제 앱에선 이 자리에 실시간 날씨·수온·파고가 들어갑니다.
+          </div>
+        )}
+
+        {/* ═══ 바다예보 (종합 대시보드) ═══ */}
+        {!loading && data && data.w && tab==="forecast" && (
+          <>
+            {score&&(
+              <div style={{background:score.color,borderRadius:16,padding:"15px 18px",marginBottom:12,display:"flex",alignItems:"center",gap:12}}>
+                <div style={{fontSize:32}}>{score.emoji}</div>
+                <div><div style={{fontSize:12,opacity:.85}}>오늘 {region.name} 낚시 조건</div><div style={{fontSize:21,fontWeight:800}}>{score.label}</div></div>
+              </div>
+            )}
+            {/* 요약 (날씨·바람파고) */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+              <Mini icon={wxEmoji} label="날씨" main={cur?`${cur.temperature_2m.toFixed(0)}°`:"-"} sub={wxText}/>
+              <Mini icon="💨" label="바람·파고" main={cur?`${cur.wind_speed_10m.toFixed(1)}m/s`:"-"} sub={waveH!=null?`파고 ${waveH.toFixed(1)}m`:""}/>
+            </div>
+            {/* 수심별 수온 요약 */}
+            {(seaTemp!=null)&&(
+              <Card title="🌊 수심별 수온">
+                <div style={{display:"flex",gap:8}}>
+                  <DepthTemp label="표층 0m" temp={seaTemp} note="찌·표층" C={C}/>
+                  <DepthTemp label="수심 20m" temp={seaTemp20} note="중층" C={C}/>
+                  <DepthTemp label="수심 50m" temp={seaTemp50} note="바닥·선상" C={C}/>
+                </div>
+                <div style={{fontSize:10,color:"#5a7590",marginTop:8}}>※ 심층 수온은 해양모델 추정값 · 바닥 어종(우럭·광어·문어) 참고용</div>
+              </Card>
+            )}
+            {/* 오늘 조석 미리보기 */}
+            <Card title="🌙 오늘 물때">
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {tides.map((t,i)=>(
+                  <div key={i} style={{background:C.card2,borderRadius:10,padding:"9px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={{fontSize:13,color:t.type==="만조"?C.blue:C.gray}}>{t.type==="만조"?"▲ 만조":"▼ 간조"}</span>
+                    <span style={{fontSize:15,fontWeight:700}}>{t.time}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{marginTop:10,fontSize:12,color:C.gray,display:"flex",gap:14}}>
+                <span>🌅 일출 {sun.sunrise}</span><span>🌇 일몰 {sun.sunset}</span>
+              </div>
+            </Card>
+            {/* 5일 예보 */}
+            {data.w.daily&&(
+              <Card title="📅 5일 예보">
+                {data.w.daily.time.map((d,i)=>{
+                  const [txt,em]=WMO[data.w.daily.weather_code[i]]||["","🌡️"];const dt=new Date(d);
+                  return(
+                    <div key={i} style={{display:"flex",alignItems:"center",padding:"9px 0",borderBottom:i<4?`1px solid ${C.border}`:"none"}}>
+                      <span style={{width:52,fontSize:13,color:C.gray}}>{i===0?"오늘":`${dt.getMonth()+1}/${dt.getDate()}`}</span>
+                      <span style={{fontSize:20,width:34}}>{em}</span>
+                      <span style={{flex:1,fontSize:13,color:C.gray}}>{txt}</span>
+                      <span style={{fontSize:12,color:C.blue,width:60}}>💨{data.w.daily.wind_speed_10m_max[i].toFixed(0)}m/s</span>
+                      <span style={{fontSize:13,width:64,textAlign:"right"}}>
+                        <span style={{color:"#e57373"}}>{data.w.daily.temperature_2m_max[i].toFixed(0)}°</span>
+                        <span style={{color:"#64b5f6",marginLeft:4}}>{data.w.daily.temperature_2m_min[i].toFixed(0)}°</span>
+                      </span>
+                    </div>
+                  );
+                })}
+              </Card>
+            )}
+
+            {/* 의견 보내기 */}
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLSdTFFDbP8ea5PPispIY3bhboCjrlZifUfsRZRydx5EsKnx8aQ/viewform?usp=header" target="_blank" rel="noopener"
+              style={{display:"block",textDecoration:"none",marginTop:4}}>
+              <div style={{background:"linear-gradient(135deg,#1a4d7a,#0d2b45)",borderRadius:16,padding:"16px 18px",border:`1px solid #2a5a8a`,display:"flex",alignItems:"center",gap:12}}>
+                <span style={{fontSize:28}}>💬</span>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:15,fontWeight:800,color:"#fff"}}>의견 · 개선 요청 보내기</div>
+                  <div style={{fontSize:12,color:C.lblue,marginTop:2}}>이런 기능 있으면 좋겠다 · 이 정보가 틀렸다 — 알려주세요 🎣</div>
+                </div>
+                <span style={{fontSize:18,color:C.lblue}}>›</span>
+              </div>
+            </a>
+            <div style={{fontSize:11,color:"#5a7590",textAlign:"center",marginTop:8,lineHeight:1.6}}>
+              여러분의 의견이 '바다조황'을 완성합니다. 낚시꾼이 만드는 낚시 앱이에요.
+            </div>
+          </>
+        )}
+        {/* ═══ 바람·파고 (날짜별: 3일 2시간 상세, 이후 오전/오후) ═══ */}
+        {!loading && data && data.w && data.w.hourly && tab==="wind" && (
+          <>
+            <div style={{fontSize:13,color:C.gray,marginBottom:12,display:"flex",alignItems:"center",gap:8}}>
+              <span>3일까지는 2시간 단위 상세, 이후는 오전/오후 · 최대 7일</span>
+              <button onClick={()=>setRegion({...region})} style={{marginLeft:"auto",padding:"5px 12px",borderRadius:14,border:"none",background:C.card,color:C.lblue,fontSize:12,fontWeight:700,cursor:"pointer"}}>🔄 새로고침</button>
+            </div>
+            {(()=>{
+              const H=data.w.hourly, M=data.m?.hourly;
+              // 시간 인덱스를 날짜별로 그룹핑
+              const byDate={};
+              H.time.forEach((t,i)=>{
+                const dt=new Date(t);
+                const key=`${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
+                if(!byDate[key]) byDate[key]={dt,idxs:[]};
+                byDate[key].idxs.push(i);
+              });
+              const dateKeys=Object.keys(byDate).slice(0,7);
+              const todayKey=`${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+              const days=["일","월","화","수","목","금","토"];
+              return dateKeys.map((key,di)=>{
+                const {dt,idxs}=byDate[key];
+                const isToday=key===todayKey;
+                const label=isToday?"오늘":di===1?"내일":di===2?"모레":`${dt.getMonth()+1}/${dt.getDate()}`;
+                const detailed=di<=2; // 오늘·내일·모레 3일은 2시간 단위 상세
+
+                return(
+                  <Card key={key} title={`${label} (${days[dt.getDay()]}) · ${dt.getMonth()+1}월 ${dt.getDate()}일`}>
+                    <div style={{display:"grid",gridTemplateColumns:"58px 1fr 1fr 60px",gap:4,fontSize:11,color:C.gray,paddingBottom:7,borderBottom:`1px solid ${C.border}`,fontWeight:700}}>
+                      <span>시각</span><span style={{textAlign:"center"}}>풍향</span><span style={{textAlign:"center"}}>풍속</span><span style={{textAlign:"right"}}>파고</span>
+                    </div>
+                    {detailed
+                      ? idxs.filter((_,k)=>new Date(H.time[idxs[k]]).getHours()%2===0).map(i=>{
+                          const hh=new Date(H.time[i]).getHours();
+                          const ws=H.wind_speed_10m[i], wd=H.wind_direction_10m[i], wh=M?.wave_height?.[i];
+                          const strong=ws>=8;
+                          return(
+                            <div key={i} style={{display:"grid",gridTemplateColumns:"58px 1fr 1fr 60px",gap:4,alignItems:"center",padding:"7px 0",borderBottom:`1px solid ${C.border}`}}>
+                              <span style={{fontSize:13,color:hh>=18||hh<6?C.gold:"#fff"}}>{String(hh).padStart(2,"0")}시</span>
+                              <span style={{textAlign:"center",fontSize:14,fontWeight:700,color:C.blue}}>{windArrow(wd)} {windDir(wd)}</span>
+                              <span style={{textAlign:"center",fontSize:14,fontWeight:700,color:strong?"#e57373":"#fff"}}>{ws.toFixed(1)}</span>
+                              <span style={{textAlign:"right",fontSize:13,color:wh>=1.5?"#e57373":C.blue}}>{wh!=null?`${wh.toFixed(1)}m`:"-"}</span>
+                            </div>
+                          );
+                        })
+                      : ["오전","오후"].map((half,hi)=>{
+                          // 오전=6~11시, 오후=12~17시 대표값
+                          const range=hi===0?idxs.filter(i=>{const h=new Date(H.time[i]).getHours();return h>=6&&h<12;})
+                                              :idxs.filter(i=>{const h=new Date(H.time[i]).getHours();return h>=12&&h<18;});
+                          if(range.length===0) return null;
+                          const avg=arr=>arr.reduce((a,b)=>a+b,0)/arr.length;
+                          const ws=avg(range.map(i=>H.wind_speed_10m[i]));
+                          const wd=range.map(i=>H.wind_direction_10m[i])[Math.floor(range.length/2)];
+                          const whs=range.map(i=>M?.wave_height?.[i]).filter(v=>v!=null);
+                          const wh=whs.length?avg(whs):null;
+                          const strong=ws>=8;
+                          return(
+                            <div key={hi} style={{display:"grid",gridTemplateColumns:"58px 1fr 1fr 60px",gap:4,alignItems:"center",padding:"9px 0",borderBottom:`1px solid ${C.border}`}}>
+                              <span style={{fontSize:13,color:C.lblue,fontWeight:700}}>{half}</span>
+                              <span style={{textAlign:"center",fontSize:14,fontWeight:700,color:C.blue}}>{windArrow(wd)} {windDir(wd)}</span>
+                              <span style={{textAlign:"center",fontSize:14,fontWeight:700,color:strong?"#e57373":"#fff"}}>{ws.toFixed(1)}</span>
+                              <span style={{textAlign:"right",fontSize:13,color:wh>=1.5?"#e57373":C.blue}}>{wh!=null?`${wh.toFixed(1)}m`:"-"}</span>
+                            </div>
+                          );
+                        })}
+                  </Card>
+                );
+              });
+            })()}
+            <div style={{fontSize:11,color:C.gray,marginTop:2,marginBottom:10,lineHeight:1.6,padding:"0 4px"}}>
+              <span style={{color:C.gold}}>노란 시각</span> = 밤 · <span style={{color:"#e57373"}}>빨간 값</span> = 풍속 8m/s↑ 또는 파고 1.5m↑ (출조 주의)<br/>
+              화살표 = 바람 부는 방향 · 풍속 m/s · 앱 열 때마다 최신 데이터 자동 갱신
+            </div>
+          </>
+        )}
+
+        {/* ═══ 날씨 (시간별) ═══ */}
+        {!loading && data && data.w && tab==="weather" && cur && (
+          <>
+            <Card title="⛅ 현재 날씨">
+              <div style={{display:"flex",alignItems:"center",gap:16}}>
+                <span style={{fontSize:46}}>{wxEmoji}</span>
+                <div><div style={{fontSize:36,fontWeight:800}}>{cur.temperature_2m.toFixed(0)}°</div><div style={{fontSize:13,color:C.gray}}>{wxText}</div></div>
+                <div style={{marginLeft:"auto",textAlign:"right",fontSize:13,color:C.gray,lineHeight:1.8}}>
+                  체감 {cur.apparent_temperature.toFixed(0)}°<br/>습도 {cur.relative_humidity_2m}%<br/>강수 {cur.precipitation}mm
+                </div>
+              </div>
+            </Card>
+            <div style={{fontSize:13,color:C.gray,marginBottom:12,display:"flex",alignItems:"center",gap:8}}>
+              <span>3일까지는 2시간 단위 상세, 이후는 오전/오후 · 최대 7일</span>
+              <button onClick={()=>setRegion({...region})} style={{marginLeft:"auto",padding:"5px 12px",borderRadius:14,border:"none",background:C.card,color:C.lblue,fontSize:12,fontWeight:700,cursor:"pointer"}}>🔄 새로고침</button>
+            </div>
+            {(()=>{
+              const H=data.w.hourly;
+              const byDate={};
+              H.time.forEach((t,i)=>{
+                const dt=new Date(t);
+                const key=`${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
+                if(!byDate[key]) byDate[key]={dt,idxs:[]};
+                byDate[key].idxs.push(i);
+              });
+              const dateKeys=Object.keys(byDate).slice(0,7);
+              const todayKey=`${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+              const days=["일","월","화","수","목","금","토"];
+              return dateKeys.map((key,di)=>{
+                const {dt,idxs}=byDate[key];
+                const label=key===todayKey?"오늘":di===1?"내일":di===2?"모레":`${dt.getMonth()+1}/${dt.getDate()}`;
+                const detailed=di<=2;
+                return(
+                  <Card key={key} title={`${label} (${days[dt.getDay()]}) · ${dt.getMonth()+1}월 ${dt.getDate()}일`}>
+                    {detailed ? (
+                      <>
+                        <div style={{display:"grid",gridTemplateColumns:"58px 44px 1fr 1fr 56px",gap:4,fontSize:11,color:C.gray,paddingBottom:7,borderBottom:`1px solid ${C.border}`,fontWeight:700}}>
+                          <span>시각</span><span style={{textAlign:"center"}}>날씨</span><span>상태</span><span style={{textAlign:"right"}}>기온</span><span style={{textAlign:"right"}}>강수</span>
+                        </div>
+                        {idxs.filter(i=>new Date(H.time[i]).getHours()%2===0).map(i=>{
+                          const hh=new Date(H.time[i]).getHours();
+                          const [txt,em]=WMO[H.weather_code[i]]||["","🌡️"];
+                          const pop=H.precipitation_probability?.[i]??0;
+                          return(
+                            <div key={i} style={{display:"grid",gridTemplateColumns:"58px 44px 1fr 1fr 56px",gap:4,alignItems:"center",padding:"7px 0",borderBottom:`1px solid ${C.border}`}}>
+                              <span style={{fontSize:13,color:hh>=18||hh<6?C.gold:"#fff"}}>{String(hh).padStart(2,"0")}시</span>
+                              <span style={{fontSize:20,textAlign:"center"}}>{em}</span>
+                              <span style={{fontSize:12,color:C.gray}}>{txt}</span>
+                              <span style={{fontSize:15,fontWeight:700,textAlign:"right"}}>{H.temperature_2m[i].toFixed(0)}°</span>
+                              <span style={{fontSize:12,color:pop>=50?"#5a9de0":C.blue,textAlign:"right"}}>💧{pop}%</span>
+                            </div>
+                          );
+                        })}
+                      </>
+                    ) : (
+                      <div style={{display:"flex",gap:10}}>
+                        {["오전","오후"].map((half,hi)=>{
+                          const range=hi===0?idxs.filter(i=>{const h=new Date(H.time[i]).getHours();return h>=6&&h<12;})
+                                              :idxs.filter(i=>{const h=new Date(H.time[i]).getHours();return h>=12&&h<18;});
+                          if(range.length===0) return null;
+                          const mid=range[Math.floor(range.length/2)];
+                          const [txt,em]=WMO[H.weather_code[mid]]||["","🌡️"];
+                          const avg=arr=>arr.reduce((a,b)=>a+b,0)/arr.length;
+                          const temp=avg(range.map(i=>H.temperature_2m[i]));
+                          const pop=Math.max(...range.map(i=>H.precipitation_probability?.[i]??0));
+                          return(
+                            <div key={hi} style={{flex:1,background:C.card2,borderRadius:12,padding:"12px",textAlign:"center"}}>
+                              <div style={{fontSize:12,color:C.lblue,fontWeight:700}}>{half}</div>
+                              <div style={{fontSize:26,margin:"4px 0"}}>{em}</div>
+                              <div style={{fontSize:12,color:C.gray}}>{txt}</div>
+                              <div style={{fontSize:15,fontWeight:700,marginTop:2}}>{temp.toFixed(0)}°</div>
+                              <div style={{fontSize:11,color:C.blue,marginTop:2}}>💧{pop}%</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </Card>
+                );
+              });
+            })()}
+            <div style={{fontSize:11,color:C.gray,marginTop:2,marginBottom:10,lineHeight:1.6,padding:"0 4px"}}>
+              💧 = 강수확률 · <span style={{color:C.gold}}>노란 시각</span> = 밤 · 앱 열 때마다 최신 데이터 자동 갱신
+            </div>
+          </>
+        )}
+
+        {/* ═══ 물때 (조석 그래프) — API 없이 계산으로 작동 ═══ */}
+        {!loading && tab==="tide" && (
+          <>
+            <Card title={`🌙 ${region.name} 물때 · 조석`}>
+              <div style={{display:"flex",alignItems:"baseline",gap:10,marginBottom:4}}>
+                <span style={{fontSize:30,fontWeight:800,color:C.blue}}>{mt.name}</span>
+                <span style={{fontSize:16,color:C.amber,fontWeight:700}}>{mt.strength}</span>
+                <span style={{marginLeft:"auto",fontSize:12,color:C.gray}}>음력 {mt.lunarDay}일</span>
+              </div>
+              <div style={{marginBottom:14}}>{[1,2,3,4,5].map(n=><span key={n} style={{display:"inline-block",width:26,height:6,borderRadius:3,marginRight:4,background:n<=mt.level?C.blue:C.border}}/>)}</div>
+              <TideGraph tides={tides} sun={sun}/>
+            </Card>
+            <Card title="📋 조석 시각표 (3일)">
+              {Array.from({length:3}).map((_,d)=>{
+                const day=new Date(today.getFullYear(),today.getMonth(),today.getDate()+d);
+                const dtides=getTides(day);
+                const dsun=sunTimes(day,region.lat);
+                const dmt=getMulttae(day);
+                const days=["일","월","화","수","목","금","토"];
+                const label=d===0?"오늘":d===1?"내일":"모레";
+                return(
+                  <div key={d} style={{marginBottom:d<2?14:0}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${C.border}`}}>
+                      <span style={{fontSize:13,fontWeight:800,color:d===0?C.gold:"#fff"}}>{label} {day.getMonth()+1}/{day.getDate()}({days[day.getDay()]})</span>
+                      <span style={{fontSize:12,color:C.blue,fontWeight:700}}>{dmt.name}</span>
+                      <span style={{fontSize:11,color:C.amber}}>{dmt.strength}</span>
+                    </div>
+                    {dtides.map((t,i)=>(
+                      <div key={i} style={{display:"flex",alignItems:"center",padding:"8px 0",borderBottom:i<3?`1px solid rgba(30,58,82,0.5)`:"none"}}>
+                        <span style={{fontSize:14,color:t.type==="만조"?C.blue:C.gray,fontWeight:700,width:66}}>{t.type==="만조"?"▲ 만조":"▼ 간조"}</span>
+                        <span style={{fontSize:18,fontWeight:800,flex:1}}>{t.time}</span>
+                        <span style={{fontSize:13,color:C.gray}}>{t.level}cm</span>
+                      </div>
+                    ))}
+                    <div style={{marginTop:6,fontSize:12,color:C.gray,display:"flex",gap:16}}>
+                      <span>🌅 일출 {dsun.sunrise}</span><span>🌇 일몰 {dsun.sunset}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </Card>
+
+            {/* 물때표 (계산값이라 길게 가능) */}
+            <Card title="📅 물때표">
+              {Array.from({length:30}).map((_,d)=>{
+                const day=new Date(today.getFullYear(),today.getMonth(),today.getDate()+d);
+                const dmt=getMulttae(day);
+                const dtides=getTides(day);
+                const days=["일","월","화","수","목","금","토"];
+                const isToday=d===0;
+                return(
+                  <div key={d} style={{padding:"10px 0",borderBottom:d<29?`1px solid ${C.border}`:"none"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                      <span style={{fontSize:13,fontWeight:700,color:isToday?C.gold:"#fff",width:80}}>
+                        {isToday?"오늘 ":""}{day.getMonth()+1}/{day.getDate()}({days[day.getDay()]})
+                      </span>
+                      <span style={{fontSize:13,fontWeight:700,color:C.blue}}>{dmt.name}</span>
+                      <span style={{fontSize:12,color:C.amber}}>{dmt.strength}</span>
+                      <span style={{marginLeft:"auto"}}>
+                        {[1,2,3,4,5].map(n=><span key={n} style={{display:"inline-block",width:12,height:5,borderRadius:2,marginLeft:2,background:n<=dmt.level?C.blue:C.border}}/>)}
+                      </span>
+                    </div>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:8,paddingLeft:2}}>
+                      {dtides.map((t,i)=>(
+                        <span key={i} style={{fontSize:12,color:t.type==="만조"?C.blue:C.gray}}>
+                          {t.type==="만조"?"▲":"▼"}{t.time}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+              <div style={{fontSize:11,color:"#5a7590",marginTop:10,lineHeight:1.5}}>▲ 만조 · ▼ 간조 · 물때는 계산값이라 날짜 무제한 조회 가능</div>
+            </Card>
+            <div style={{fontSize:11,color:"#5a7590",textAlign:"center",lineHeight:1.6}}>※ 조석 시각·조위는 근사 계산값 · 실제 앱은 국립해양조사원 관측소 정밀값 연동</div>
+          </>
+        )}
+
+        {/* ═══ 낚시예측 (체감수온 + 종합) ═══ */}
+        {!loading && data && tab==="predict" && (
+          <>
+            {score&&(
+              <div style={{background:score.color,borderRadius:16,padding:"16px 18px",marginBottom:12}}>
+                <div style={{fontSize:13,opacity:.85}}>오늘 출조 판단</div>
+                <div style={{fontSize:24,fontWeight:800,marginTop:2}}>{score.emoji} {score.label}</div>
+                <div style={{fontSize:12,opacity:.9,marginTop:6}}>물때 {mt.strength} · 바람 {cur?cur.wind_speed_10m.toFixed(1):"-"}m/s · 파고 {waveH!=null?waveH.toFixed(1)+"m":"-"}</div>
+              </div>
+            )}
+            <Card title="🌡️ 수온 · 체감수온">
+              <div style={{display:"flex",gap:12}}>
+                <div style={{flex:1,background:C.card2,borderRadius:12,padding:"14px"}}>
+                  <div style={{fontSize:11,color:C.gray}}>실제 수온</div>
+                  <div style={{fontSize:32,fontWeight:800,color:C.blue}}>{seaTemp!=null?seaTemp.toFixed(1):"-"}°</div>
+                </div>
+                <div style={{flex:1,background:"linear-gradient(135deg,#1a3a52,#0f2438)",borderRadius:12,padding:"14px",border:"1px solid #2a5a8a"}}>
+                  <div style={{fontSize:11,color:C.gold}}>🌬️ 체감수온</div>
+                  <div style={{fontSize:32,fontWeight:800,color:C.gold}}>{feels!=null?feels.toFixed(1):"-"}°</div>
+                  <div style={{fontSize:10,color:C.gray,marginTop:2}}>바람·파고·기온차 반영</div>
+                </div>
+              </div>
+              <div style={{fontSize:11,color:"#5a7590",marginTop:10}}>낚시꾼이 실제로 느끼는 수온. 표시 수온과 체감이 다른 이유를 숫자로.</div>
+            </Card>
+
+            {/* 수심별 수온 (표층 vs 심층) */}
+            <Card title="🌊 수심별 수온">
+              <div style={{display:"flex",gap:8}}>
+                <DepthTemp label="표층 0m" temp={seaTemp} note="찌·표층 어종" C={C}/>
+                <DepthTemp label="수심 20m" temp={seaTemp20} note="중층 공략" C={C}/>
+                <DepthTemp label="수심 50m" temp={seaTemp50} note="바닥·선상" C={C}/>
+              </div>
+              {(seaTemp20!=null||seaTemp50!=null)&&seaTemp!=null&&(
+                <div style={{fontSize:12,color:C.lblue,marginTop:10,lineHeight:1.5}}>
+                  {seaTemp50!=null
+                    ? `바닥(50m)은 표층보다 ${(seaTemp-seaTemp50).toFixed(1)}° 낮아요. 우럭·광어·문어 등 바닥 어종 참고.`
+                    : `수심 20m는 표층보다 ${(seaTemp-seaTemp20).toFixed(1)}° 낮아요.`}
+                </div>
+              )}
+              <div style={{fontSize:10,color:"#5a7590",marginTop:8,lineHeight:1.5}}>
+                ※ 심층 수온은 해양모델 <b>추정값</b>이라 실측과 차이 있을 수 있어요. 데이터 없는 지점은 '-'로 표시됩니다.
+              </div>
+            </Card>
+            <Card title="🎯 지금 잘 되는 어종">
+              {(()=>{
+                // 이번 달 시즌인 어종 전부 (피크 먼저, 그다음 시즌)
+                const inSeasonFish=FISH.filter(f=>f.seasonAll.includes(month))
+                  .sort((a,b)=>{
+                    const ap=a.seasonPeak.includes(month)?0:1;
+                    const bp=b.seasonPeak.includes(month)?0:1;
+                    return ap-bp;
+                  });
+                if(inSeasonFish.length===0) return <div style={{color:C.gray,fontSize:13}}>이번 달 시즌 어종 정보 준비 중</div>;
+                return inSeasonFish.map(f=>{
+                  const isPeak=f.seasonPeak.includes(month);
+                  const okTemp=seaTemp!=null&&seaTemp>=f.tempMin&&seaTemp<=f.tempMax;
+                  const nowBanned=isInBanPeriod(f.ban,today);
+                  return(
+                    <div key={f.id} onClick={()=>{setSelFish(f);setTab("fish");}} style={{display:"flex",alignItems:"center",gap:10,padding:"11px 0",borderBottom:`1px solid ${C.border}`,cursor:"pointer"}}>
+                      <span style={{fontSize:26}}>{f.emoji}</span>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:15,fontWeight:700,display:"flex",alignItems:"center",gap:6}}>
+                          {f.name}
+                          {nowBanned&&<span style={{fontSize:10,fontWeight:700,padding:"1px 6px",borderRadius:6,background:"#3a1515",color:"#ff6b6b"}}>금어기</span>}
+                        </div>
+                        <div style={{fontSize:11,color:C.gray}}>적정 {f.tempMin}~{f.tempMax}℃ · {f.tideBest} · 피크 {f.peak}</div>
+                      </div>
+                      <div style={{display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end"}}>
+                        <span style={{fontSize:11,fontWeight:700,padding:"3px 9px",borderRadius:8,background:isPeak?"#1f9d55":C.amber,color:"#fff"}}>{isPeak?"🎣 피크":"시즌"}</span>
+                        {seaTemp!=null&&<span style={{fontSize:10,color:okTemp?"#1fd579":C.gray}}>{okTemp?"수온 적정":"수온 체크"}</span>}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+              <div style={{fontSize:11,color:C.gray,marginTop:10,lineHeight:1.5}}>
+                <span style={{color:"#1f9d55"}}>🎣 피크</span> = 지금이 가장 잘 되는 철 · <span style={{color:C.amber}}>시즌</span> = 노려볼 만함 · 어종 누르면 상세 정보
+              </div>
+            </Card>
+          </>
+        )}
+
+        {/* ═══ 어종별 ═══ */}
+        {!loading && tab==="fish" && (
+          <>
+            <div style={{fontSize:13,color:C.gray,marginBottom:10,lineHeight:1.6}}>
+              낚시꾼이 노리는 <b style={{color:C.blue}}>{FISH.length}종</b>. 12개월 시즌바에서 <b style={{color:"#1f9d55"}}>진한 초록</b>이 피크, 연한 초록이 시즌이에요.
+            </div>
+            {/* 카테고리 필터 */}
+            <div style={{display:"flex",gap:8,marginBottom:12}}>
+              {CATS.map(c=>(
+                <button key={c} onClick={()=>setSelCat(c)} style={{padding:"7px 16px",borderRadius:16,border:"none",background:selCat===c?C.blue:C.card,color:selCat===c?"#fff":C.gray,fontSize:13,fontWeight:700,cursor:"pointer"}}>
+                  {c==="어류"?"🐟 어류":c==="두족류"?"🦑 오징어·문어":c}
+                </button>
+              ))}
+            </div>
+            {/* 어종 칩 */}
+            <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:14}}>
+              {FISH.filter(f=>selCat==="전체"||f.cat===selCat).map(f=>{const on=selFish.id===f.id;const s=fishInSeason(f);return(
+                <button key={f.id} onClick={()=>setSelFish(f)} style={{padding:"8px 13px",borderRadius:20,border:on?`1px solid ${C.blue}`:`1px solid ${C.border}`,background:on?C.blue:C.card,color:on?"#fff":C.gray,fontSize:14,fontWeight:700,cursor:"pointer",position:"relative"}}>
+                  {f.emoji} {f.name}{s&&<span style={{position:"absolute",top:-4,right:-4,width:9,height:9,borderRadius:"50%",background:"#1f9d55",border:`1.5px solid ${C.bg}`}}/>}
+                </button>);})}
+            </div>
+            {(()=>{const f=selFish;const inS=fishInSeason(f);const inAll=f.seasonAll.includes(month);const ts=seaTemp==null?null:(seaTemp>=f.tempMin&&seaTemp<=f.tempMax?"적정":seaTemp<f.tempMin?"낮음":"높음");const nowBanned=isInBanPeriod(f.ban,today);return(
+              <Card>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+                  <span style={{fontSize:34}}>{f.emoji}</span>
+                  <div><div style={{fontSize:22,fontWeight:800}}>{f.name}</div><div style={{fontSize:11,color:C.gray}}>{f.cat}</div></div>
+                  <div style={{marginLeft:"auto",display:"flex",gap:6,flexWrap:"wrap",justifyContent:"flex-end"}}>
+                    <span style={{fontSize:12,fontWeight:700,padding:"4px 10px",borderRadius:8,background:inS?"#1f9d55":inAll?C.amber:"#3a3a3a",color:"#fff"}}>{inS?"피크 🎣":inAll?"시즌":"비시즌"}</span>
+                    {ts&&<span style={{fontSize:12,fontWeight:700,padding:"4px 10px",borderRadius:8,background:ts==="적정"?"#1f9d55":C.amber,color:"#fff"}}>수온 {ts}</span>}
+                  </div>
+                </div>
+
+                {/* 금어기 중이면 빨간 경고 배너 */}
+                {nowBanned && (
+                  <div style={{background:"#3a1515",border:"1px solid #e05353",borderRadius:12,padding:"12px 14px",marginBottom:10,display:"flex",alignItems:"center",gap:10}}>
+                    <span style={{fontSize:24}}>🚫</span>
+                    <div><div style={{fontSize:14,fontWeight:800,color:"#ff6b6b"}}>지금 금어기입니다</div><div style={{fontSize:12,color:"#ffb3b3",marginTop:2}}>{f.ban} · 포획 시 과태료 등 처벌 대상</div></div>
+                  </div>
+                )}
+
+                {/* 12개월 시즌 바 */}
+                <div style={{background:C.card2,borderRadius:12,padding:"12px 14px",marginBottom:10}}>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:8}}>
+                    <span style={{color:C.lblue,fontWeight:700}}>📅 시즌 캘린더</span>
+                    <span style={{color:"#1fd579",fontWeight:700}}>피크 {f.peak}</span>
+                  </div>
+                  <div style={{display:"flex",gap:2}}>
+                    {[1,2,3,4,5,6,7,8,9,10,11,12].map(m=>{
+                      const isPeak=f.seasonPeak.includes(m);const isSeason=f.seasonAll.includes(m);const isNow=m===month;
+                      return(
+                        <div key={m} style={{flex:1,textAlign:"center"}}>
+                          <div style={{height:22,borderRadius:4,background:isPeak?"#1f9d55":isSeason?"rgba(31,157,85,0.35)":"#1a2a3a",border:isNow?`1.5px solid ${C.gold}`:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                            {isNow&&<span style={{fontSize:8,color:C.gold}}>●</span>}
+                          </div>
+                          <div style={{fontSize:9,color:isNow?C.gold:C.gray,marginTop:3,fontWeight:isNow?700:400}}>{m}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{fontSize:10,color:C.gray,marginTop:8}}>
+                    <span style={{color:C.gold}}>●</span> 이번 달({month}월) · <span style={{color:"#1f9d55"}}>■</span> 피크 · <span style={{color:"rgba(31,157,85,0.6)"}}>■</span> 시즌
+                  </div>
+                </div>
+
+                {/* 적정 수온 바 */}
+                <div style={{background:C.card2,borderRadius:12,padding:"12px 14px",marginBottom:10}}>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:6}}><span style={{color:C.lblue,fontWeight:700}}>🌡️ 적정 수온</span><span style={{fontWeight:700}}>{f.tempMin}~{f.tempMax}℃</span></div>
+                  <div style={{position:"relative",height:10,background:"#1a2a3a",borderRadius:5,overflow:"hidden"}}>
+                    <div style={{position:"absolute",left:`${f.tempMin/30*100}%`,width:`${(f.tempMax-f.tempMin)/30*100}%`,top:0,bottom:0,background:"linear-gradient(90deg,#4a9de0,#1f9d55)"}}/>
+                    {seaTemp!=null&&<div style={{position:"absolute",left:`${Math.min(100,Math.max(0,seaTemp/30*100))}%`,top:-3,width:2,height:16,background:C.gold}}/>}
+                  </div>
+                  {seaTemp!=null&&<div style={{fontSize:11,color:C.gold,marginTop:5}}>▲ 현재 {region.name} {seaTemp.toFixed(1)}°</div>}
+                  <div style={{fontSize:11,color:C.gray,marginTop:4}}>{f.tempNote}</div>
+                </div>
+
+                <Row label="🌊 적정 물때" value={f.tideBest} note={f.tideNote}/>
+                <Row label="📅 시즌" value={f.season} note={`피크 ${f.peak}`} highlight={inS}/>
+                <Row label="📏 수심대" value={f.depth}/>
+                <Row label="⏰ 베스트" value={f.best}/>
+
+                {/* 금어기 · 금지체장 (법적 규제) */}
+                <div style={{marginTop:12,background:nowBanned?"#2a1818":"#1a1410",borderRadius:12,padding:"12px 14px",border:`1px solid ${nowBanned?"#e05353":"#4a3a1a"}`}}>
+                  <div style={{fontSize:12,color:"#ffcf70",fontWeight:700,marginBottom:8}}>⚖️ 법적 규제 (수산자원관리법)</div>
+                  <div style={{display:"flex",gap:10}}>
+                    <div style={{flex:1,background:"rgba(0,0,0,0.25)",borderRadius:10,padding:"10px 12px"}}>
+                      <div style={{fontSize:11,color:C.gray}}>🚫 금어기</div>
+                      <div style={{fontSize:15,fontWeight:700,color:f.ban.includes("없음")?C.gray:"#ff9d6a",marginTop:3}}>{f.ban}</div>
+                    </div>
+                    <div style={{flex:1,background:"rgba(0,0,0,0.25)",borderRadius:10,padding:"10px 12px"}}>
+                      <div style={{fontSize:11,color:C.gray}}>📏 금지체장</div>
+                      <div style={{fontSize:15,fontWeight:700,color:f.minSize.includes("없음")?C.gray:"#ffcf70",marginTop:3}}>{f.minSize}</div>
+                    </div>
+                  </div>
+                  <div style={{fontSize:11,color:C.gray,marginTop:8,lineHeight:1.5}}>{f.banNote}</div>
+                </div>
+
+                <div style={{marginTop:12,background:C.card2,borderRadius:12,padding:"12px 14px"}}>
+                  <div style={{fontSize:12,color:C.lblue,fontWeight:700,marginBottom:8}}>💡 조과 팁</div>
+                  {f.tips.map((t,i)=><div key={i} style={{fontSize:13,color:"#cdd9e5",lineHeight:1.7,paddingLeft:14,position:"relative"}}><span style={{position:"absolute",left:0,color:C.blue}}>·</span>{t}</div>)}
+                </div>
+              </Card>
+            );})()}
+            <div style={{textAlign:"center",fontSize:11,color:"#3d5670",marginTop:16,lineHeight:1.7}}>
+              어종 정보는 낚시 매체·전문 자료 기반 참고값입니다.<br/>
+              <b style={{color:"#8a7a50"}}>금어기·금지체장은 2026년 기준이며 매년·지역별로 바뀝니다. 출조 전 해양수산부·지자체 최신 고시를 꼭 확인하세요.</b>
+            </div>
+          </>
+        )}
+
+        {/* ═══ 포인트 (지도·해도 링크) ═══ */}
+        {!loading && tab==="point" && (
+          <>
+            <div style={{fontSize:13,color:C.gray,marginBottom:12,lineHeight:1.6}}>낚시에 필요한 지도·해도·실측 정보를 바로 연결해요.</div>
+
+            {/* 지도·해도 링크 (2열 그리드로 한눈에) */}
+            <Card title="🗺️ 지도 · 해도 바로가기">
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {[
+                  {emoji:"🌊",title:"전자해도",desc:"수심·등수심선",url:"https://www.khoa.go.kr/oceanmap/main.do"},
+                  {emoji:"💨",title:"Windy 바람",desc:`${region.name} 바람지도`,url:`https://www.windy.com/?${region.lat},${region.lon},9`},
+                  {emoji:"🌡️",title:"실시간 수온",desc:"수산과학원 관측",url:"https://www.nifs.go.kr/risa/main.risa"},
+                  {emoji:"⛅",title:"기상청 바다",desc:"해상 예보·특보",url:"https://www.weather.go.kr/w/ocean/marine/forecast.do"},
+                ].map((L,i)=>(
+                  <a key={i} href={L.url} target="_blank" rel="noopener" style={{display:"block",background:C.card2,borderRadius:12,padding:"14px 12px",textDecoration:"none",color:"#fff"}}>
+                    <div style={{fontSize:24}}>{L.emoji}</div>
+                    <div style={{fontSize:14,fontWeight:700,marginTop:6}}>{L.title}</div>
+                    <div style={{fontSize:11,color:C.gray,marginTop:2}}>{L.desc}</div>
+                  </a>
+                ))}
+              </div>
+              <div style={{fontSize:11,color:"#5a7590",marginTop:10}}>외부 사이트로 연결됩니다 · 정밀 수심(등수심선)은 전자해도에서 확대해 확인</div>
+            </Card>
+
+            {/* 대표 포인트 (향후 확장) */}
+            <Card title="📍 대표 포인트">
+              <div style={{fontSize:13,color:C.gray,lineHeight:1.7}}>
+                실제 출시 앱에서는 이 자리에 낚시 포인트 목록이 쌓입니다.<br/>
+                포인트별 <b style={{color:C.blue}}>수심 · 바닥지질 · 적정물때 · 조과후기</b>를 표시할 예정입니다.
+              </div>
+            </Card>
+          </>
+        )}
+      </div>
+
+      {/* 하단 탭바 (주요 4개 고정) */}
+      <div style={{position:"fixed",bottom:0,left:0,right:0,background:"#0d2135",borderTop:`1px solid ${C.border}`,display:"flex",maxWidth:480,margin:"0 auto"}}>
+        {[["forecast","🌊","예보"],["tide","🌙","물때"],["predict","🎯","낚시예측"],["fish","🐟","어종"]].map(([id,ic,label])=>(
+          <button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:"10px 0 13px",background:"none",border:"none",cursor:"pointer",color:tab===id?C.blue:C.gray,borderTop:tab===id?`2px solid ${C.blue}`:"2px solid transparent"}}>
+            <div style={{fontSize:19}}>{ic}</div><div style={{fontSize:11,fontWeight:700,marginTop:2}}>{label}</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── 조각 컴포넌트 ──
+function Card({title,children}){return(
+  <div style={{background:C.card,borderRadius:16,padding:16,marginBottom:12,border:`1px solid ${C.border}`}}>
+    {title&&<div style={{fontSize:13,color:C.lblue,fontWeight:700,marginBottom:12}}>{title}</div>}
+    {children}
+  </div>
+);}
+function Mini({icon,label,main,sub,gold}){return(
+  <div style={{background:C.card,borderRadius:14,padding:"13px 14px",border:`1px solid ${C.border}`}}>
+    <div style={{fontSize:11,color:C.gray}}>{icon} {label}</div>
+    <div style={{fontSize:24,fontWeight:800,color:gold?C.gold:"#fff",marginTop:4}}>{main}</div>
+    {sub&&<div style={{fontSize:11,color:gold?C.gold:C.gray,marginTop:2}}>{sub}</div>}
+  </div>
+);}
+function DepthTemp({label,temp,note,C}){
+  // 수온에 따라 색: 따뜻할수록 붉게, 차가울수록 파랗게
+  const col=temp==null?"#5a7590":temp>=22?"#e57e73":temp>=17?"#e0a94a":temp>=12?"#4a9de0":"#5a8fd0";
+  return(
+    <div style={{flex:1,background:C.card2,borderRadius:12,padding:"12px 8px",textAlign:"center"}}>
+      <div style={{fontSize:11,color:C.lblue,fontWeight:700}}>{label}</div>
+      <div style={{fontSize:24,fontWeight:800,color:col,marginTop:4}}>{temp!=null?temp.toFixed(1):"-"}°</div>
+      <div style={{fontSize:10,color:C.gray,marginTop:3}}>{note}</div>
+    </div>
+  );
+}
+function Row({label,value,note,highlight}){return(
+  <div style={{padding:"10px 0",borderBottom:`1px solid ${C.border}`}}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:12}}>
+      <span style={{fontSize:13,color:C.lblue,fontWeight:700,flexShrink:0}}>{label}</span>
+      <span style={{fontSize:14,fontWeight:700,textAlign:"right",color:highlight?"#1fd579":"#fff"}}>{value}</span>
+    </div>
+    {note&&<div style={{fontSize:11,color:C.gray,marginTop:4,textAlign:"right"}}>{note}</div>}
+  </div>
+);}
+
+// ── 세로 조석 그래프 (참고 앱 이미지8 스타일: 위→아래 0~24시) ──
+function TideGraph({tides,sun}){
+  const W=320, H=420, padT=20, padB=20;
+  const axisX=150;               // 세로 시간축 위치
+  const usableH=H-padT-padB;
+  const yFor=hour=>padT+(hour/24)*usableH;   // 시각 → y좌표
+  const maxL=Math.max(...tides.map(t=>t.level),600);
+  const minL=Math.min(...tides.map(t=>t.level),0);
+  // 조위 → x축 편차 (만조는 오른쪽으로, 간조는 왼쪽으로 곡선이 휘게)
+  const xFor=level=>{
+    const norm=(level-minL)/(maxL-minL||1);   // 0~1
+    return axisX + (norm-0.5)*180;            // 축 기준 좌우로
+  };
+  const pts=tides.map(t=>({x:xFor(t.level),y:yFor(t.hour),...t}));
+  // 부드러운 세로 곡선
+  let path=`M ${axisX} ${padT}`;
+  const first={x:axisX,y:padT};
+  let prev=first;
+  for(const p of pts){
+    const cy=(prev.y+p.y)/2;
+    path+=` Q ${prev.x} ${cy} ${p.x} ${p.y}`;
+    prev=p;
+  }
+  path+=` Q ${prev.x} ${(prev.y+(H-padB))/2} ${axisX} ${H-padB}`;
+
+  // 시간 눈금 (0,3,6...24)
+  const ticks=[0,3,6,9,12,15,18,21,24];
+  const sunriseH=parseInt(sun.sunrise.slice(0,2))+parseInt(sun.sunrise.slice(3))/60;
+  const sunsetH=parseInt(sun.sunset.slice(0,2))+parseInt(sun.sunset.slice(3))/60;
+
+  return(
+    <svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",height:"auto",maxHeight:460}}>
+      <defs>
+        <linearGradient id="tideGradV" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#0a1929"/><stop offset="100%" stopColor="#4a9de0"/>
+        </linearGradient>
+      </defs>
+
+      {/* 낮 시간대 음영 (일출~일몰) */}
+      <rect x="0" y={yFor(sunriseH)} width={W} height={yFor(sunsetH)-yFor(sunriseH)} fill="#4a9de0" opacity="0.05"/>
+
+      {/* 세로 시간축 */}
+      <line x1={axisX} y1={padT} x2={axisX} y2={H-padB} stroke="#1e3a52" strokeWidth="1"/>
+      {ticks.map(h=>(
+        <g key={h}>
+          <line x1={axisX-4} y1={yFor(h)} x2={axisX+4} y2={yFor(h)} stroke="#3a5a7a" strokeWidth="1"/>
+          <text x={axisX-10} y={yFor(h)+3} fill="#8aa5bd" fontSize="10" textAnchor="end">{h}</text>
+        </g>
+      ))}
+
+      {/* 조석 곡선 */}
+      <path d={path} fill="none" stroke="#4a9de0" strokeWidth="2.5"/>
+
+      {/* 일출/일몰 마커 */}
+      <g>
+        <text x={W-8} y={yFor(sunriseH)+4} fill="#ffd27a" fontSize="11" textAnchor="end">🌅 {sun.sunrise}</text>
+        <text x={W-8} y={yFor(sunsetH)+4} fill="#ff9d6a" fontSize="11" textAnchor="end">🌇 {sun.sunset}</text>
+      </g>
+
+      {/* 만조/간조 박스 (참고 앱처럼 좌우로) */}
+      {pts.map((p,i)=>{
+        const isHigh=p.type==="만조";
+        const boxW=64, boxH=34;
+        const boxX=isHigh ? p.x+8 : p.x-boxW-8;   // 만조 오른쪽, 간조 왼쪽
+        const bx=Math.max(2,Math.min(W-boxW-2,boxX));
+        return(
+          <g key={i}>
+            <circle cx={p.x} cy={p.y} r="5" fill={isHigh?"#e57373":"#4a9de0"} stroke="#0a1929" strokeWidth="1.5"/>
+            <rect x={bx} y={p.y-boxH/2} width={boxW} height={boxH} rx="6" fill={isHigh?"#3a1f1f":"#0f2438"} stroke={isHigh?"#e57373":"#4a9de0"} strokeWidth="1"/>
+            <text x={bx+boxW/2} y={p.y-3} fill={isHigh?"#e57373":"#7eb3e0"} fontSize="10" textAnchor="middle" fontWeight="700">{isHigh?"▲만조":"▼간조"} {p.time}</text>
+            <text x={bx+boxW/2} y={p.y+11} fill="#8aa5bd" fontSize="9" textAnchor="middle">{p.level}cm</text>
+          </g>
+        );
+      })}
+
+      {/* 상단/하단 라벨 */}
+      <text x={axisX} y={padT-6} fill="#5a7590" fontSize="9" textAnchor="middle">0시</text>
+      <text x={axisX} y={H-padB+14} fill="#5a7590" fontSize="9" textAnchor="middle">24시</text>
+    </svg>
+  );
+}

@@ -1,0 +1,6 @@
+{
+  "appId": "com.badajohwang.app",
+  "appName": "바다조황",
+  "webDir": "dist",
+  "android": { "allowMixedContent": true }
+}
