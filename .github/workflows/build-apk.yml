@@ -28,8 +28,7 @@ jobs:
         run: |
           set -e
           mkdir -p src
-          cp fishing-app-v3.jsx src/App.jsx
-
+  
           cat > package.json <<'ENDOFFILE'
           {
             "name": "badajohwang",
