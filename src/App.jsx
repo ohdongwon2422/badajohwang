@@ -72,81 +72,6 @@ const REGIONS = [
 const SEAS = ["서해","남해","동해"];
 
 // ══════════════════════════════════════════════════════════
-//  어종 데이터 (웹 검색 기반 실제값) · peak=피크월, season=전체시즌
-//  category: 어류 / 두족류(오징어문어) / 기타
-// ══════════════════════════════════════════════════════════
-const FISH = [
-  { id:"galchi", name:"갈치", emoji:"🐟", cat:"어류", tempMin:20, tempMax:27, tempNote:"20℃↑ 먹이활동 활발 (아열대성)", zone:"여수·거문도·백도, 제주 (먼바다 채낚기)",
-    tideBest:"3물~7물", tideNote:"사리엔 조류 빨라 불리 · 조금엔 입질 약함", season:"7~12월", peak:"9~11월", seasonPeak:[9,10,11], seasonAll:[7,8,9,10,11,12],
-    ban:"7월 중 (근해채낚기 등, 매년 고시)", minSize:"항문장 18cm", banNote:"금어기는 어업별로 다름 · 낚시객은 체장 준수", depth:"표층~중층 (선상 50~100m)", best:"밤 · 바람 잦아든 초저녁",
-    tips:["추광성 — 집어등/케미라이트에 잘 모임","초저녁 바람 터지면 조과 급락","11~12월 연안 굵은 씨알 마릿수","찬바람에 연안서 빠지면 시즌 종료"] },
-  { id:"gwangeo", name:"광어(넙치)", emoji:"🐟", cat:"어류", tempMin:10, tempMax:25, tempNote:"15~22℃ 활동성 최고 · 산란기 2~6월", zone:"서해 전역·남해 서부 (안흥·격포·가거도)",
-    tideBest:"3~7물 (바닥 찍기 편함)", tideNote:"모래·펄 바닥에 붙어 생활", season:"4~11월", peak:"5~6월·10월", seasonPeak:[5,6,10], seasonAll:[4,5,6,7,8,9,10,11],
-    ban:"없음 (금지체장만)", minSize:"35cm", banNote:"넙치 35cm 미만 방생", depth:"10~200m 모래·혼무니 바닥", best:"서해 방조제·선상 다운샷",
-    tips:["다운샷 웜·생새우로 바닥 공략","치어방류로 자원 풍부해져 전문 대상어화","모래와 암반 섞인 지형 선호","서해 루어·선상 외줄 모두 가능"] },
-  { id:"ureok", name:"우럭(조피볼락)", emoji:"🐟", cat:"어류", tempMin:8, tempMax:22, tempNote:"8~22℃ (냉수에 강함)", zone:"서해 전역·남해·동해 (선상 우럭 전국)",
-    tideBest:"3~7물", tideNote:"먼바다 선상은 물때 영향 적음", season:"연중 (4~6월 대물)", peak:"4~6월", seasonPeak:[4,5,6], seasonAll:[1,2,3,4,5,6,7,8,9,10,11,12],
-    ban:"없음", minSize:"23cm 권장", banNote:"법정 금지체장은 없으나 자원보호 위해 23cm↓ 방생", depth:"암초·인공어초 바닥", best:"서해 선상 외줄낚시",
-    tips:["서해 대표 입문 어종","23cm 미만은 방생 (자원보호)","볼락·열기와 함께 낚임","산란 전후 봄철이 굵은 씨알"] },
-  { id:"gamseongdom", name:"감성돔", emoji:"🐠", cat:"어류", tempMin:15, tempMax:22, tempNote:"15~22℃ 활동성 최고", zone:"남해 갯바위 전역·서해 원도 (여수·완도·통영)",
-    tideBest:"중간 물때 (사리 정중앙 피함)", tideNote:"영등철엔 느린 조류·물돌이 때 유리", season:"3~6월·10~11월", peak:"4~5월·10~11월", seasonPeak:[4,5,10,11], seasonAll:[3,4,5,6,10,11],
-    ban:"5/1~5/31", minSize:"25cm", banNote:"산란기 보호 · 25cm 미만 방생", depth:"7~8m 여밭·수중여", best:"해질녘 전후 30분 · 갯바위",
-    tips:["'바다의 왕자' — 수심 깊은 여밭 선호","미끼 크릴/게살","경사 완만·바닥 밋밋한 곳 잘 붙음","영등철(2~3월) 대물 노림"] },
-  { id:"chamdom", name:"참돔", emoji:"🐠", cat:"어류", tempMin:14, tempMax:24, tempNote:"봄·가을 연안 회유", zone:"남해·제주 (통영·거제·여서도)",
-    tideBest:"3~7물 (조류 있는 날)", tideNote:"타이라바·선상 지깅", season:"4~5월·10~11월", peak:"4~5월·10~11월", seasonPeak:[4,5,10,11], seasonAll:[4,5,6,9,10,11],
-    ban:"없음", minSize:"24cm", banNote:"24cm 미만 방생", depth:"20~150m 중층~저층", best:"선상 타이라바 · 물돌이",
-    tips:["봄 산란기 대물 '벚꽃돔'","타이라바·인치쿠로 공략","조류 흐를 때 입질 활발"] },
-  { id:"nongeo", name:"농어", emoji:"🐟", cat:"어류", tempMin:14, tempMax:24, tempNote:"루어 대표 어종", zone:"남해·서해 하구 (여수·군산·강화)",
-    tideBest:"들물~날물 교차 (물돌이)", tideNote:"조석차 클수록 포인트 중요", season:"5~10월", peak:"5~7월", seasonPeak:[5,6,7], seasonAll:[5,6,7,8,9,10],
-    ban:"없음", minSize:"없음", banNote:"법정 규제 없음 (자원보호 배려)", depth:"수문·방파제·갯바위", best:"새벽·해질녘 · 루어",
-    tips:["'바다의 육상' — 강한 파이팅","하드베이트·미노우 캐스팅","수문·기수역 포인트","제주는 연중 가능"] },
-  { id:"doldom", name:"돌돔", emoji:"🐠", cat:"어류", tempMin:16, tempMax:26, tempNote:"여름 고수온기 피크", zone:"남해 원도·제주 (거문도·추자·가거도)",
-    tideBest:"3~5물·11~13물 (사리 피함)", tideNote:"물돌이 때 입질 잦음 · 탁한 물 피함", season:"6월중순~10월말", peak:"7~9월", seasonPeak:[7,8,9], seasonAll:[6,7,8,9,10],
-    ban:"없음", minSize:"24cm", banNote:"24cm 미만 방생 권장", depth:"암초대 10~15m", best:"아침~오전 (해 뜬 후 2시간)",
-    tips:["주행성 — 아침이 피크","성게·소라·게 미끼","얕은 여밭은 파도 있는 날 유리","'갯바위의 황제' 강한 손맛"] },
-  { id:"bangeo", name:"방어", emoji:"🐟", cat:"어류", tempMin:12, tempMax:22, tempNote:"겨울철 최고 횟감", zone:"제주·남해·동해 남부 (겨울 방어)",
-    tideBest:"본류대 조류 흐를 때", tideNote:"베이트 무리 추적", season:"9~1월", peak:"11~1월", seasonPeak:[11,12,1], seasonAll:[9,10,11,12,1],
-    ban:"없음", minSize:"없음 (대방어 보호 권장)", banNote:"소형 방어 방생 권장", depth:"20~150m 중층~저층", best:"지깅·캐스팅 · 남해/제주/동해",
-    tips:["10kg↑ 대물은 '대방어'","메탈지그 지깅이 기본","겨울철 기름진 육질 최고","강력한 파이팅·지구력"] },
-  { id:"samchi", name:"삼치", emoji:"🐟", cat:"어류", tempMin:15, tempMax:24, tempNote:"회유성 · 빠른 유영", zone:"동해 (경주 감포·포항), 남해 원도",
-    tideBest:"조류 흐르는 날", tideNote:"표층 베이트 추적", season:"9~11월·5월", peak:"9~11월", seasonPeak:[9,10,11], seasonAll:[5,9,10,11],
-    ban:"5월 (신설, 매년 고시)", minSize:"항문장 21cm", banNote:"산란기 보호", depth:"표층~중층", best:"메탈 캐스팅 · 동해/남해",
-    tips:["이빨 날카로워 와이어 리더 필수","은빛 메탈지그 빠른 릴링","가을 기름 오른 삼치 별미"] },
-  { id:"godeungeo", name:"고등어", emoji:"🐟", cat:"어류", tempMin:14, tempMax:22, tempNote:"14~22℃ · 일출·일몰 전후 공격성↑", zone:"남해·동해 (부산·통영·포항)",
-    tideBest:"조류 있는 물때", tideNote:"표층 카고·사비키", season:"6~11월", peak:"8~11월", seasonPeak:[8,9,10,11], seasonAll:[6,7,8,9,10,11],
-    ban:"4~6월 중 한 달 (매년 고시)", minSize:"21cm", banNote:"매년 해수부 고시로 기간 지정", depth:"표층~중층", best:"일출·일몰 전후 · 방파제",
-    tips:["은빛 반사 미끼(스푼·파리)에 폭발","사비키 채비로 마릿수","가을 기름 오른 고등어 최상"] },
-  { id:"bolrak", name:"볼락", emoji:"🐟", cat:"어류", tempMin:8, tempMax:18, tempNote:"찬물 좋아하는 겨울 대표어", zone:"남해·동해 전역 (통영·거제·울산·경주·포항·영덕·울진)",
-    tideBest:"1~4물·8~10물 (느린 조류)", tideNote:"야간에 활성↑", season:"11~4월", peak:"12~3월", seasonPeak:[12,1,2,3], seasonAll:[11,12,1,2,3,4],
-    ban:"없음", minSize:"15cm", banNote:"조피볼락 등 볼락류 15cm 미만 방생", depth:"암초·테트라포드 사이", best:"밤 · 남해 갯바위/방파제",
-    tips:["경상도 '뽈락' · 겨울 대표 손맛","웜·미끼 야간 라이트게임","암초 틈에 은신 — 정밀 공략","잡식성 — 새우·물고기 다 먹음"] },
-  { id:"muneo", name:"문어", emoji:"🐙", cat:"두족류", tempMin:12, tempMax:22, tempNote:"15~22℃ 활동성 최고", zone:"동해·남해 (포항·영덕·통영)",
-    tideBest:"조금~중물 (약한 조류)", tideNote:"물 맑고 조류 세지 않을 때", season:"7~9월", peak:"7~8월", seasonPeak:[7,8], seasonAll:[7,8,9],
-    ban:"시·도 별도 지정", minSize:"금지체중 신설", banNote:"지역별 금어기 상이 · 관할 고시 확인", depth:"10~100m 바닥권", best:"물색 맑은 낮 · 바닥 공략",
-    tips:["대문어는 동해·남해 깊은 여밭","에기/문어지그로 바닥 탐색","격투력 강해 채비 튼튼하게"] },
-  { id:"gapojingeo", name:"갑오징어", emoji:"🦑", cat:"두족류", tempMin:12, tempMax:24, tempNote:"12~24℃", zone:"서해·남해 (태안·군산·여수)",
-    tideBest:"무시~3물 (약한 물때)", tideNote:"바닥 서식 — 조류 약해야 채비 안착", season:"봄3~5월·가을9~11월", peak:"4~5월·10~11월", seasonPeak:[4,5,10,11], seasonAll:[3,4,5,9,10,11],
-    ban:"없음", minSize:"없음", banNote:"자원보호 위해 소형 방생 권장", depth:"5~50m (바닥 20~50cm)", best:"에깅 · 물흐름 느린 날",
-    tips:["시력 좋아 에기 색상에 민감","서해 오천·군산, 남해 여수·통영·거제","고패질로 천천히 작은 폭 유인","봄 대물·가을 마릿수 두 시즌"] },
-  { id:"jukkumi", name:"주꾸미", emoji:"🐙", cat:"두족류", tempMin:15, tempMax:25, tempNote:"가을철 연안 수온대", zone:"서해 (태안·보령·서산)",
-    tideBest:"2물~5물", tideNote:"조금물때가 사리보다 유리", season:"8~11월", peak:"9~10월", seasonPeak:[9,10], seasonAll:[8,9,10,11],
-    ban:"5/11~8/31", minSize:"없음", banNote:"산란·성장기 4개월 포획 금지", depth:"얕은 바닥권", best:"가을 서해 선상 · 새벽 출항",
-    tips:["묵직해지면 한 템포 늦춰 챔질","천수만처럼 개체 많으면 물때 무관","바닥까지 에기 내려 고패질","금어기(5.11~8.31) 확인"] },
-  { id:"munui", name:"무늬오징어", emoji:"🦑", cat:"두족류", tempMin:18, tempMax:28, tempNote:"18~28℃", zone:"남해·제주 (통영·거제·여수 무늬오징어)",
-    tideBest:"조류 완만한 물때", tideNote:"바람·탁한 물·비 직후·민물 유입 피함", season:"봄4~6월·가을9~11월", peak:"5~6월·10월", seasonPeak:[5,6,10], seasonAll:[4,5,6,9,10,11],
-    ban:"없음", minSize:"없음", banNote:"자원보호 위해 소형 방생 권장", depth:"5~50m", best:"제주 에깅 · 야간낚시",
-    tips:["제주 인기 에깅, 킬로급 손맛","서귀포 남원 연중 가능(16℃↑)","먹물 묻은 에기는 교체","봄 산란기 대물·가을 마릿수"] },
-  { id:"hanchi", name:"한치", emoji:"🦑", cat:"두족류", tempMin:20, tempMax:28, tempNote:"여름 고수온기", zone:"제주·동해·남해 (여름 한치)",
-    tideBest:"조류 완만한 밤", tideNote:"집어등에 모임", season:"6~8월", peak:"6~8월", seasonPeak:[6,7,8], seasonAll:[6,7,8],
-    ban:"없음", minSize:"없음", banNote:"자원보호 위해 소형 방생 권장", depth:"표층~중층", best:"밤 선상 · 남해/제주 집어등",
-    tips:["여름밤 선상 대표 어종","집어등에 베이트 모아 공략","막대찌·수중집어등 병행","제주·남해 여름 별미"] },
-  { id:"salojingeo", name:"살오징어", emoji:"🦑", cat:"두족류", tempMin:12, tempMax:22, tempNote:"동해 대표 · 최근 서해도 출현", zone:"동해·남해 먼바다 (울릉·포항·강릉·남해 원도)",
-    tideBest:"조류 완만한 밤", tideNote:"집어등 채비", season:"6~12월", peak:"9~10월", seasonPeak:[9,10], seasonAll:[6,7,8,9,10,11,12],
-    ban:"4/1~5/31 (연안, 매년 고시)", minSize:"외투장 15cm", banNote:"어린 오징어 보호 강화", depth:"표층~중층", best:"밤 선상 · 동해/서해 집어등",
-    tips:["초보도 하루 50수 거뜬","묶음바늘(이카바늘) 채비","수온 상승으로 서해 어청도도 대풍","동해가 본거지지만 광역 확산"] },
-];
-
-const CATS=["전체","어류","두족류"];
 
 // 현재 날짜가 금어기 기간에 속하는지 (MM/DD 범위 파싱)
 function isInBanPeriod(banStr, date){
@@ -376,13 +301,11 @@ export default function FishingApp(){
   const [tab,setTab]=useState("forecast");
   const _defaultRegion=REGIONS.find(r=>r.id==="samcheonpo")||REGIONS[0];
   const [region,setRegion]=useState(_defaultRegion);
-  const [selSea,setSelSea]=useState(_defaultRegion.sea); // 선택한 바다(서해/남해/동해/제주)
+  const [selSea,setSelSea]=useState(_defaultRegion.sea); // 선택한 바다(서해/남해/동해)
   const [ptQuery,setPtQuery]=useState("");   // 포인트 검색어
   const [ptOpen,setPtOpen]=useState(false);  // 포인트 목록 열림 여부
   const [data,setData]=useState(null);
   const [loading,setLoading]=useState(true);
-  const [selFish,setSelFish]=useState(FISH[0]);
-  const [selCat,setSelCat]=useState("전체");
   const [isSample,setIsSample]=useState(false);
   const today=new Date();
   const month=today.getMonth()+1;
@@ -428,7 +351,6 @@ export default function FishingApp(){
     return getMarineAlert(wMax, wvMax, gMax);
   })();
   const dateStr=`${today.getMonth()+1}월 ${today.getDate()}일 (${["일","월","화","수","목","금","토"][today.getDay()]})`;
-  const fishInSeason=f=>f.seasonPeak.includes(month);
 
   return(
     <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'Pretendard',-apple-system,sans-serif",color:C.text,paddingBottom:72}}>
