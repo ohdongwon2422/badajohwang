@@ -305,6 +305,7 @@ export default function FishingApp(){
   const [selSea,setSelSea]=useState(_defaultRegion.sea); // 선택한 바다(서해/남해/동해)
   const [ptQuery,setPtQuery]=useState("");   // 포인트 검색어
   const [ptOpen,setPtOpen]=useState(false);  // 포인트 목록 열림 여부
+  const [listOpen,setListOpen]=useState(false); // 지역 목록 펼침 여부
   const [data,setData]=useState(null);
   const [loading,setLoading]=useState(true);
   const [isSample,setIsSample]=useState(false);
@@ -354,7 +355,7 @@ export default function FishingApp(){
   const dateStr=`${today.getMonth()+1}월 ${today.getDate()}일 (${["일","월","화","수","목","금","토"][today.getDay()]})`;
 
   return(
-    <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'Pretendard',-apple-system,sans-serif",color:C.text,paddingBottom:72}}>
+    <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'Pretendard',-apple-system,sans-serif",color:C.text,paddingBottom:150}}>
       <style>{`@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');*{box-sizing:border-box;margin:0}::-webkit-scrollbar{display:none}
         select option{background:#ffffff;color:#12344f;}`}</style>
 
@@ -372,6 +373,15 @@ export default function FishingApp(){
           <span style={{fontSize:20,fontWeight:900,letterSpacing:-0.5,color:"#fff",textShadow:"0 1px 3px rgba(0,40,80,0.35)"}}>바다조황</span>
           <span style={{fontSize:11,color:"rgba(255,255,255,0.9)",fontWeight:600,marginTop:4}}>물때·수온·날씨·조황</span>
         </div>
+        {/* 탭 스크롤 (로고 바로 아래) */}
+        <div style={{display:"flex",gap:6,overflowX:"auto",marginBottom:10}}>
+          {TABS.map(([id,ic,label])=>(
+            <button key={id} onClick={()=>{ if(id==="chart"){ window.open(CHART_URL,"_blank"); } else if(id==="ship"){ window.open(SHIP_URL,"_blank"); } else { setTab(id); } }} style={{flexShrink:0,padding:"7px 12px",borderRadius:18,border:"none",
+              background:tab===id?"#fff":"rgba(255,255,255,0.22)",color:tab===id?"#2f6fb5":"#fff",fontSize:13,fontWeight:700,cursor:"pointer"}}>
+              {ic} {label}
+            </button>
+          ))}
+        </div>
         {/* 날짜 (상단 우측) */}
         <div style={{textAlign:"right",fontSize:11,color:"rgba(255,255,255,0.92)",marginBottom:6}}>{dateStr} · 음력 {mt.lunarDay}일 · {mt.name}</div>
 
@@ -380,7 +390,7 @@ export default function FishingApp(){
           {/* 바다 버튼 3개 - 왼쪽 (합쳐서 절반) */}
           {SEAS.map(s=>(
             <button key={s} onClick={()=>{
-                setSelSea(s); setPtQuery(""); setPtOpen(false);
+                setSelSea(s); setPtQuery(""); setPtOpen(false); setListOpen(true);
                 const first=REGIONS.find(r=>r.sea===s);
                 if(first) setRegion(first);
               }}
@@ -409,7 +419,7 @@ export default function FishingApp(){
                   if(list.length===0) return <div style={{padding:"12px 14px",fontSize:13,color:C.gray}}>검색 결과 없음</div>;
                   return list.map(r=>(
                     <div key={r.id}
-                      onMouseDown={()=>{setRegion(r); setSelSea(r.sea); setPtOpen(false); setPtQuery("");}}
+                      onMouseDown={()=>{setRegion(r); setSelSea(r.sea); setPtOpen(false); setPtQuery(""); setListOpen(false);}}
                       style={{padding:"10px 14px",fontSize:14,fontWeight:700,cursor:"pointer",color:C.text,
                         display:"flex",alignItems:"center",gap:6}}>
                       <span>{r.kind==="원도"?"🚢":"📍"}</span>{r.name}
@@ -422,10 +432,11 @@ export default function FishingApp(){
           </div>
         </div>
 
-        {/* 선택한 바다의 포인트 목록 (화면 끝까지 세로로 쭉) */}
+        {/* 선택한 바다의 지역 목록 — listOpen일 때만 펼침 */}
+        {listOpen && (
         <div style={{background:"rgba(255,255,255,0.12)",borderRadius:12,padding:"5px",marginBottom:6,maxHeight:"calc(100vh - 250px)",overflowY:"auto"}}>
           {REGIONS.filter(r=>r.sea===selSea).map(r=>(
-            <button key={r.id} onClick={()=>setRegion(r)}
+            <button key={r.id} onClick={()=>{setRegion(r); setListOpen(false);}}
               style={{display:"flex",alignItems:"center",gap:8,width:"100%",textAlign:"left",padding:"9px 12px",borderRadius:8,border:"none",cursor:"pointer",fontSize:14,fontWeight:700,marginBottom:2,
                 background: r.id===region.id ? "#fff" : "transparent",
                 color: r.id===region.id ? C.blue : "#fff"}}>
@@ -435,18 +446,17 @@ export default function FishingApp(){
             </button>
           ))}
         </div>
+        )}
+        {/* 목록 닫힘 상태: 현재 지역 표시 + 지역 바꾸기 버튼 */}
+        {!listOpen && (
+        <div style={{display:"flex",alignItems:"center",gap:8,background:"rgba(255,255,255,0.15)",borderRadius:10,padding:"9px 12px",marginBottom:6}}>
+          <span style={{fontSize:14,fontWeight:800,color:"#fff"}}>📍 {region.name}</span>
+          <button onClick={()=>setListOpen(true)} style={{marginLeft:"auto",padding:"6px 12px",borderRadius:14,border:"none",background:"#fff",color:C.blue,fontSize:12,fontWeight:800,cursor:"pointer"}}>지역 바꾸기 ▾</button>
+        </div>
+        )}
         <div style={{fontSize:10.5,color:"rgba(255,255,255,0.85)"}}>
           🚢 = 배 타고 나가는 먼바다 섬(원도) · 현재: <span style={{color:"#fff",fontWeight:700}}>{region.name}</span>
           {region.kind==="원도" && <span style={{color:"#ffe9b0"}}> · 출조 전 여객선·낚싯배 운항 확인</span>}
-        </div>
-        {/* 탭 스크롤 */}
-        <div style={{display:"flex",gap:6,overflowX:"auto",marginTop:12}}>
-          {TABS.map(([id,ic,label])=>(
-            <button key={id} onClick={()=>{ if(id==="chart"){ window.open(CHART_URL,"_blank"); } else if(id==="ship"){ window.open(SHIP_URL,"_blank"); } else { setTab(id); } }} style={{flexShrink:0,padding:"7px 12px",borderRadius:18,border:"none",
-              background:tab===id?"#fff":"rgba(255,255,255,0.22)",color:tab===id?"#2f6fb5":"#fff",fontSize:13,fontWeight:700,cursor:"pointer"}}>
-              {ic} {label}
-            </button>
-          ))}
         </div>
         </div>
       </div>
@@ -884,13 +894,21 @@ export default function FishingApp(){
         )}
       </div>
 
-      {/* 하단 탭바 */}
-      <div style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(255,255,255,0.97)",borderTop:`1px solid ${C.border}`,display:"flex",maxWidth:480,margin:"0 auto",boxShadow:"0 -2px 10px rgba(31,111,178,0.08)"}}>
-        {[["forecast","🌊","예보"],["tide","🌙","물때"],["chart","🗺️","전자해도"],["ship","🚢","배 위치"],["point","📍","포인트"]].map(([id,ic,label])=>(
-          <button key={id} onClick={()=>{ if(id==="chart"){ window.open(CHART_URL,"_blank"); } else if(id==="ship"){ window.open(SHIP_URL,"_blank"); } else { setTab(id); } }} style={{flex:1,padding:"10px 0 13px",background:"none",border:"none",cursor:"pointer",color:tab===id?C.blue:C.gray,borderTop:tab===id?`2px solid ${C.blue}`:"2px solid transparent"}}>
-            <div style={{fontSize:19}}>{ic}</div><div style={{fontSize:10.5,fontWeight:700,marginTop:2}}>{label}</div>
-          </button>
-        ))}
+      {/* 하단 영역: 광고 자리 + 큰 탭바 */}
+      <div style={{position:"fixed",bottom:0,left:0,right:0,maxWidth:480,margin:"0 auto",zIndex:20}}>
+        {/* 광고 영역 (추후 AdMob 배너) */}
+        <div style={{background:"rgba(240,247,253,0.98)",borderTop:`1px solid ${C.border}`,textAlign:"center",padding:"6px 0 4px"}}>
+          <div style={{fontSize:9,color:"#9db8cf",letterSpacing:1,marginBottom:2}}>광고</div>
+          <div style={{height:44,margin:"0 10px",background:"#fff",border:`1px dashed ${C.border}`,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#a8bccf"}}>광고 배너 자리</div>
+        </div>
+        {/* 큰 하단 탭바 */}
+        <div style={{background:"rgba(255,255,255,0.98)",borderTop:`1px solid ${C.border}`,display:"flex",boxShadow:"0 -2px 10px rgba(31,111,178,0.08)"}}>
+          {[["forecast","🌊","예보"],["tide","🌙","물때"],["chart","🗺️","전자해도"],["ship","🚢","배 위치"],["point","📍","포인트"]].map(([id,ic,label])=>(
+            <button key={id} onClick={()=>{ if(id==="chart"){ window.open(CHART_URL,"_blank"); } else if(id==="ship"){ window.open(SHIP_URL,"_blank"); } else { setTab(id); } }} style={{flex:1,padding:"12px 0 16px",background:"none",border:"none",cursor:"pointer",color:tab===id?C.blue:C.gray,borderTop:tab===id?`3px solid ${C.blue}`:"3px solid transparent"}}>
+              <div style={{fontSize:25}}>{ic}</div><div style={{fontSize:12,fontWeight:800,marginTop:4}}>{label}</div>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
