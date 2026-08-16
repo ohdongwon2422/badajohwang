@@ -296,7 +296,16 @@ const TABS=[
   ["tide","🌙","물때"],["chart","🗺️","전자해도"],["ship","🚢","배 위치"],["point","📍","포인트"],
 ];
 const CHART_URL="https://www.khoa.go.kr/oceanmap/main.do"; // 전자해도(국립해양조사원)
-const SHIP_URL="https://www.marinetraffic.com/en/ais/home/centerx:127/centery:35/zoom:6"; // 선박 위치 추적(MarineTraffic)
+const SHIP_URL="https://www.vesselfinder.com/?zoom=7&lat=35.0&lon=127.5"; // 선박 위치 추적(VesselFinder)
+
+// 외부 링크를 폰 기본 브라우저로 강제로 열기(앱 웹뷰 안에 갇히지 않도록)
+function openExternal(url){
+  try{
+    const a=document.createElement("a");
+    a.href=url; a.target="_system"; a.rel="noopener noreferrer";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }catch(e){ window.open(url,"_blank"); }
+}
 
 export default function FishingApp(){
   const [tab,setTab]=useState("forecast");
@@ -376,7 +385,7 @@ export default function FishingApp(){
         {/* 탭 스크롤 (로고 바로 아래) */}
         <div style={{display:"flex",gap:6,overflowX:"auto",marginBottom:10}}>
           {TABS.map(([id,ic,label])=>(
-            <button key={id} onClick={()=>{ if(id==="chart"){ window.open(CHART_URL,"_blank"); } else if(id==="ship"){ window.open(SHIP_URL,"_blank"); } else { setTab(id); } }} style={{flexShrink:0,padding:"7px 12px",borderRadius:18,border:"none",
+            <button key={id} onClick={()=>{ if(id==="chart"){ openExternal(CHART_URL); } else if(id==="ship"){ openExternal(SHIP_URL); } else { setTab(id); } }} style={{flexShrink:0,padding:"7px 12px",borderRadius:18,border:"none",
               background:tab===id?"#fff":"rgba(255,255,255,0.22)",color:tab===id?"#2f6fb5":"#fff",fontSize:13,fontWeight:700,cursor:"pointer"}}>
               {ic} {label}
             </button>
@@ -519,7 +528,14 @@ export default function FishingApp(){
             )}
             {/* 요약 (날씨·바람파고) */}
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
-              <Mini icon={wxEmoji} label="날씨" main={cur?`${cur.temperature_2m.toFixed(0)}°`:"-"} sub={wxText}/>
+              <div style={{background:C.card,borderRadius:14,padding:"13px 14px",border:`1px solid ${C.border}`,boxShadow:"0 2px 8px rgba(31,111,178,0.06)"}}>
+                <div style={{fontSize:11,color:C.gray}}>날씨</div>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:4}}>
+                  <span style={{fontSize:24,fontWeight:800,color:C.text}}>{cur?`${cur.temperature_2m.toFixed(0)}°`:"-"}</span>
+                  <span style={{fontSize:52,lineHeight:1}}>{wxEmoji}</span>
+                </div>
+                {wxText&&<div style={{fontSize:11,color:C.gray,marginTop:2}}>{wxText}</div>}
+              </div>
               <Mini icon="💨" label="바람·파고" main={cur?`${cur.wind_speed_10m.toFixed(1)}m/s`:"-"} sub={waveH!=null?`파고 ${waveH.toFixed(1)}m`:""}/>
             </div>
             {/* 수심별 수온 요약 */}
@@ -904,7 +920,7 @@ export default function FishingApp(){
         {/* 큰 하단 탭바 */}
         <div style={{background:"rgba(255,255,255,0.98)",borderTop:`1px solid ${C.border}`,display:"flex",boxShadow:"0 -2px 10px rgba(31,111,178,0.08)"}}>
           {[["forecast","🌊","예보"],["tide","🌙","물때"],["chart","🗺️","전자해도"],["ship","🚢","배 위치"],["point","📍","포인트"]].map(([id,ic,label])=>(
-            <button key={id} onClick={()=>{ if(id==="chart"){ window.open(CHART_URL,"_blank"); } else if(id==="ship"){ window.open(SHIP_URL,"_blank"); } else { setTab(id); } }} style={{flex:1,padding:"12px 0 16px",background:"none",border:"none",cursor:"pointer",color:tab===id?C.blue:C.gray,borderTop:tab===id?`3px solid ${C.blue}`:"3px solid transparent"}}>
+            <button key={id} onClick={()=>{ if(id==="chart"){ openExternal(CHART_URL); } else if(id==="ship"){ openExternal(SHIP_URL); } else { setTab(id); } }} style={{flex:1,padding:"12px 0 16px",background:"none",border:"none",cursor:"pointer",color:tab===id?C.blue:C.gray,borderTop:tab===id?`3px solid ${C.blue}`:"3px solid transparent"}}>
               <div style={{fontSize:25}}>{ic}</div><div style={{fontSize:12,fontWeight:800,marginTop:4}}>{label}</div>
             </button>
           ))}
