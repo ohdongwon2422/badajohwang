@@ -166,8 +166,9 @@ function feelsSea(sea,air,wind,wave){
 async function fetchMarine(lat,lon){
   try{
     const m=await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}`+
-      `&current=sea_surface_temperature,wave_height,wave_period,wave_direction,ocean_temperature_0m,ocean_temperature_20m,ocean_temperature_50m`+
+      `&current=sea_surface_temperature,wave_height,wave_period,wave_direction`+
       `&hourly=wave_height,wave_period,wave_direction&timezone=Asia%2FSeoul&forecast_days=7`).then(r=>r.json());
+    if(!m || m.error) return null; // API 오류(항목 오류 등)면 null
     return m;
   }catch(e){ return null; }
 }
@@ -341,8 +342,14 @@ export default function FishingApp(){
   const sun=sunTimes(today,region.lat);
   const cur=data?.w?.current;
   const seaTemp=data?.m?.current?.sea_surface_temperature;
-  const seaTemp20=data?.m?.current?.ocean_temperature_20m;
-  const seaTemp50=data?.m?.current?.ocean_temperature_50m;
+  // 수심별 수온: 해양 API에 수심 자료가 없어 표층 수온에서 계절별로 추정
+  // (여름엔 수온약층으로 표층-심층 차이가 크고, 겨울엔 거의 같음)
+  const [d20,d50]=(()=>{const mo=today.getMonth()+1;
+    if(mo>=6&&mo<=9) return [3.5,8.0];      // 여름
+    if(mo>=12||mo<=2) return [0.5,1.0];     // 겨울
+    return [2.0,4.0];})();                  // 봄·가을
+  const seaTemp20=seaTemp!=null?+(seaTemp-d20).toFixed(1):null;
+  const seaTemp50=seaTemp!=null?+(seaTemp-d50).toFixed(1):null;
   const waveH=data?.m?.current?.wave_height;
   const wavePeriod=data?.m?.current?.wave_period;
   const [wxText,wxEmoji]=WMO[cur?.weather_code??0]||["-","🌡️"];
@@ -543,8 +550,8 @@ export default function FishingApp(){
               <Card title="🌊 수심별 수온">
                 <div style={{display:"flex",gap:8}}>
                   <DepthTemp label="표층 0m" temp={seaTemp} note="찌·표층" C={C}/>
-                  <DepthTemp label="수심 20m" temp={seaTemp20} note="중층" C={C}/>
-                  <DepthTemp label="수심 50m" temp={seaTemp50} note="바닥·선상" C={C}/>
+                  <DepthTemp label="수심 20m" temp={seaTemp20} note="중층·추정" C={C}/>
+                  <DepthTemp label="수심 50m" temp={seaTemp50} note="바닥·추정" C={C}/>
                 </div>
                 <div style={{fontSize:10,color:C.gray,marginTop:8}}>※ 심층 수온은 해양모델 추정값 · 바닥 어종(우럭·광어·문어) 참고용</div>
               </Card>
