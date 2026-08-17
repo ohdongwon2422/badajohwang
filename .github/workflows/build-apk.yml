@@ -104,6 +104,9 @@ jobs:
       - name: 안드로이드 프로젝트 생성
         run: npx cap add android
 
+      - name: 앱 아이콘 적용
+        run: npx @capacitor/assets generate --android --iconBackgroundColor '#1D5272' --splashBackgroundColor '#1D5272'
+
       - name: 안드로이드로 복사
         run: npx cap sync android
 
